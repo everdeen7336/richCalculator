@@ -1,4 +1,4 @@
-import { Box, Card, CardContent, CardHeader, Container, createStyles, Grid, InputAdornment, makeStyles, TextField, Theme, Typography } from '@material-ui/core';
+import { Box, Card, CardContent, CardHeader, Container, createStyles, Grid, InputAdornment, makeStyles, TextField, Theme, Typography, withStyles } from '@material-ui/core';
 import Head from 'next/head'
 import { useEffect, useState } from 'react';
 import NumberFormat from 'react-number-format';
@@ -45,6 +45,26 @@ function NumberFormatCustom(props: NumberFormatCustomProps) {
     />
   );
 }
+
+const InterestTextField = withStyles({
+  root: {
+    '& .MuiInputBase-root': {
+      '& input': {
+        color: 'red',
+      },
+    },
+  },
+})(TextField);
+
+const IncomeTextField = withStyles({
+  root: {
+    '& .MuiInputBase-root': {
+      '& input': {
+        color: 'blue',
+      },
+    },
+  },
+})(TextField);
 
 export default function Home() {
   const classes = useStyles();
@@ -105,9 +125,9 @@ export default function Home() {
     setAnnualInterest(annualInt);
     setAnnualRent(monthlyRentMaan * 12);
     const monthlyInt = annualInt / 12;
-    setMonthlyInterest(monthlyInt);
+    setMonthlyInterest(Math.round(monthlyInt));
     const actualIncome = monthlyRentMaan - monthlyInt;
-    setMonthlyNetIncome(actualIncome);
+    setMonthlyNetIncome(Math.round(actualIncome));
     setAnnualNetIncome(monthlyRentMaan * 12 - annualInt);
 
     // 수익율
@@ -132,16 +152,16 @@ export default function Home() {
   const handleCommissionRate = (event) => { setCommissionRate(event.target.value) };
 
   return (
-    <Container maxWidth="sm" className={classes.root}>
+    <Container maxWidth="lg" className={classes.root}>
       <Head>
         <title>부자의 계산기</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Typography variant="h3" component="h1" gutterBottom>
+      <Typography variant="h3" component="h1" >
         부자의 계산기
       </Typography>
-      <Box my={4}>
+      <Box my={4} margin={0}>
         <Card variant="outlined" className={classes.card}>
           <CardContent>
             <TextField
@@ -171,64 +191,67 @@ export default function Home() {
               </Typography>
             <TextField
               className={classes.textField}
-              label="필요 투자금액"
-              value={neededCost}
-              size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
-              label="실 투자금액(부가세 제외)"
-              value={cost}
-              size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
-              label="년 임대수입"
-              value={annualRent}
-              size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
-              label="연 대출이자"
-              value={annualInterest}
-              size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
-              label="월 대출이자"
-              value={monthlyInterest}
-              size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
-              label="월 실수익"
-              value={monthlyNetIncome}
-              size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
-              label="년 실수익"
-              value={annualNetIncome}
-              size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
               label="수익율"
               value={realEarningRate}
               size="small"
+              InputProps={{ readOnly: true }}
             />
             <TextField
               className={classes.textField}
               label="매매가 대비 수익율"
               value={earningRate}
               size="small"
+              InputProps={{ readOnly: true }}
+            />
+            <TextField
+              className={classes.textField}
+              label="필요 투자금액"
+              value={neededCost}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="실 투자금액(부가세 제외)"
+              value={cost}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="년 임대수입"
+              value={annualRent}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="연 대출이자"
+              value={annualInterest}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <InterestTextField
+              className={classes.textField}
+              label="월 대출이자"
+              value={monthlyInterest}
+              size="small"
+              color="secondary"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <IncomeTextField
+              className={classes.textField}
+              label="월 실수익"
+              value={monthlyNetIncome}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="년 실수익"
+              value={annualNetIncome}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
           </CardContent>
         </Card>
@@ -242,21 +265,21 @@ export default function Home() {
               label="부동산 중계수수료"
               value={commission}
               size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
             <TextField
               className={classes.textField}
               label="부가세"
               value={surTax}
               size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
             <TextField
               className={classes.textField}
               label="취등록세"
               value={registrationTax}
               size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
           </CardContent>
         </Card>
@@ -270,14 +293,14 @@ export default function Home() {
               label="대출금"
               value={loanedMoney}
               size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
             <TextField
               className={classes.textField}
               label="보증금"
               value={deposit * 10000}
               size="small"
-              InputProps={{ inputComponent: NumberFormatCustom as any, }}
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
           </CardContent>
         </Card>
