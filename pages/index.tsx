@@ -107,7 +107,7 @@ export default function Home() {
     const commission = priceMaan * commissionRate / 100 * 1.1;
     const surTax = priceMaan * surTaxRate / 100;
     const registrationTax = priceMaan * registrationTaxRate / 100;
-    setCommission(commission);
+    setCommission(Math.round(commission));
     setSurTax(surTax);
     setRegistrationTax(registrationTax);
 
@@ -168,18 +168,21 @@ export default function Home() {
               className={classes.textField}
               label="매매가(만원)"
               onChange={handlePrice} value={price}
+              inputProps={{ inputMode: 'numeric' }}
               size="small"
             />
             <TextField
               className={classes.textField}
               label="임대보증금(만원)"
               onChange={handleDeposit} value={deposit}
+              inputProps={{ inputMode: 'numeric' }}
               size="small"
             />
             <TextField
               className={classes.textField}
               label="월세(만원)"
               onChange={handleRent} value={monthlyRent}
+              inputProps={{ inputMode: 'numeric' }}
               size="small"
             />
           </CardContent>
@@ -315,30 +318,35 @@ export default function Home() {
               label="대출비율 %"
               onChange={handleRentRate} value={rentRate}
               size="small"
+              inputProps={{ inputMode: 'numeric' }}
             />
             <TextField
               className={classes.textField}
               label="이자율"
               onChange={handleInterestRate} value={interestRate}
               size="small"
+              inputProps={{ inputMode: 'numeric' }}
             />
             <TextField
               className={classes.textField}
               label="부가세 비율"
               onChange={handleSurTaxRate} value={surTaxRate}
               size="small"
+              inputProps={{ inputMode: 'numeric' }}
             />
             <TextField
               className={classes.textField}
               label="상가취등록세율"
               onChange={handleRegistrationTaxRate} value={registrationTaxRate}
               size="small"
+              inputProps={{ inputMode: 'numeric' }}
             />
             <TextField
               className={classes.textField}
               label="부동산중계수수료율"
               onChange={handleCommissionRate} value={commissionRate}
               size="small"
+              inputProps={{ inputMode: 'numeric' }}
             />
           </CardContent>
         </Card>
