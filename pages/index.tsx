@@ -97,11 +97,22 @@ export default function Home() {
   const [interestRate, setInterestRate] = useState(3.5); // 이자율
   const [commissionRate, setCommissionRate] = useState(0.9); // 부동산중계 수수료율
 
+  const [price3, setPrice3] = useState(0);
+  const [price4, setPrice4] = useState(0);
+  const [price5, setPrice5] = useState(0);
+  const [price6, setPrice6] = useState(0);
+
   const compute = () => {
     // 실제 계산
     const priceMaan = price * 10000;
     const monthlyRentMaan = monthlyRent * 10000;
     const depositMaan = deposit * 10000;
+
+    // 월세 역산 가격
+    setPrice6(monthlyRentMaan * 1200 / 6);
+    setPrice5(monthlyRentMaan * 1200 / 5);
+    setPrice4(monthlyRentMaan * 1200 / 4);
+    setPrice3(monthlyRentMaan * 1200 / 3);
 
     // 지출
     const commission = priceMaan * commissionRate / 100 * 1.1;
@@ -190,6 +201,41 @@ export default function Home() {
         <Card variant="outlined" className={classes.card}>
           <CardContent>
             <Typography variant="h6" component="h1" gutterBottom>
+              수익율 별 매매가 역산
+              </Typography>
+            <TextField
+              className={classes.textField}
+              label="3%"
+              value={price3}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="4%"
+              value={price4}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="5%"
+              value={price5}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="6%"
+              value={price6}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+          </CardContent>
+        </Card>
+        <Card variant="outlined" className={classes.card}>
+          <CardContent>
+            <Typography variant="h6" component="h1" gutterBottom>
               계산결과
               </Typography>
             <TextField
@@ -222,15 +268,15 @@ export default function Home() {
             />
             <TextField
               className={classes.textField}
-              label="년 임대수입"
-              value={annualRent}
+              label="연 대출이자"
+              value={annualInterest}
               size="small"
               InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
             <TextField
               className={classes.textField}
-              label="연 대출이자"
-              value={annualInterest}
+              label="년 임대수입"
+              value={annualRent}
               size="small"
               InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
