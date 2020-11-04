@@ -2,6 +2,7 @@ import { Box, Card, CardContent, CardHeader, Container, createStyles, Grid, Inpu
 import Head from 'next/head'
 import { useEffect, useState } from 'react';
 import NumberFormat from 'react-number-format';
+import GoogleBanner from '../components/google/GoogleBanner';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -201,16 +202,13 @@ export default function Home() {
         </Card>
         <Card variant="outlined" className={classes.card}>
           <CardContent>
-            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-            <ins class="adsbygoogle"
-              style="display:block"
-              data-ad-client="ca-pub-7233017559577101"
-              data-ad-slot="3679477717"
-              data-ad-format="auto"
-              data-full-width-responsive="true"></ins>
-            <script>
-              (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
+            <GoogleBanner
+              client='ca-pub-7233017559577101'
+              slot='3679477717'
+              style={{ display: 'block' }}
+              format='auto'
+              responsive='true'
+            />
           </CardContent>
         </Card>
         <Card variant="outlined" className={classes.card}>
