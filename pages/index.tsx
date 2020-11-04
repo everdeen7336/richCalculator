@@ -167,6 +167,7 @@ export default function Home() {
       <Head>
         <title>부자의 계산기</title>
         <link rel="icon" href="/favicon.ico" />
+        <script data-ad-client="ca-pub-7233017559577101" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
       </Head>
 
       <Typography variant="h3" component="h1" >
@@ -330,6 +331,9 @@ export default function Home() {
               size="small"
               InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
+            <Typography component="p">
+            취등록세는 매매가 기준이며, 공시지가 기준이 아닙니다.
+            </Typography>
           </CardContent>
         </Card>
         <Card variant="outlined" className={classes.card}>
