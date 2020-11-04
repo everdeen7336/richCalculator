@@ -14,7 +14,7 @@ interface GoogleProps {
 
 export default class GoogleBanner extends React.Component<GoogleProps> {
     componentDidMount() {
-        if (window) (window.adsbygoogle = window.adsbygoogle || []).push({});
+        if (window) (window['adsbygoogle'] = window['adsbygoogle'] || []).push({});
     };
 
     render() {
