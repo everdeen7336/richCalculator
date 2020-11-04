@@ -166,13 +166,13 @@ export default function Home() {
   return (
     <Container maxWidth="lg" className={classes.root}>
       <Head>
-        <title>상가 수익율 계산기</title>
+        <title>우쿨나뭇잎의 상가 수익율 계산기</title>
         <link rel="icon" href="/favicon.ico" />
         <script data-ad-client="ca-pub-7233017559577101" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
       </Head>
 
       <Typography variant="h3" component="h1" >
-        부자의 계산기
+        우쿨나뭇잎의 상가 수익율 계산기
       </Typography>
       <Box my={4} margin={0}>
         <Card variant="outlined" className={classes.card}>
