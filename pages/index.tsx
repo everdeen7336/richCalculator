@@ -201,6 +201,20 @@ export default function Home() {
         </Card>
         <Card variant="outlined" className={classes.card}>
           <CardContent>
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <ins class="adsbygoogle"
+              style="display:block"
+              data-ad-client="ca-pub-7233017559577101"
+              data-ad-slot="3679477717"
+              data-ad-format="auto"
+              data-full-width-responsive="true"></ins>
+            <script>
+              (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+          </CardContent>
+        </Card>
+        <Card variant="outlined" className={classes.card}>
+          <CardContent>
             <Typography variant="h6" component="h1" gutterBottom>
               수익율 별 매매가 역산
               </Typography>
@@ -332,7 +346,7 @@ export default function Home() {
               InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
             />
             <Typography component="p">
-            취등록세는 매매가 기준이며, 공시지가 기준이 아닙니다.
+              취등록세는 매매가 기준이며, 공시지가 기준이 아닙니다.
             </Typography>
           </CardContent>
         </Card>
