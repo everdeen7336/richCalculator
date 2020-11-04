@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, createStyles, makeStyles, TextField, Theme, Typography, withStyles } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import NumberFormat from 'react-number-format';
-import GoogleBanner from '../components/google/GoogleBanner';
+import GoogleBanner from './GoogleBanner';
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({

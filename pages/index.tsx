@@ -1,7 +1,9 @@
 import { Container, createStyles, makeStyles, Theme } from '@material-ui/core';
 import Head from 'next/head';
 import { useEffect, useState } from 'react';
-import Home, { BuzaConfig, BuzaConfigKey } from './rich-calc';
+import { GetStaticProps, GetStaticPaths, GetServerSideProps } from 'next'
+
+import Home, { BuzaConfig, BuzaConfigKey } from '../components/google/rich-calc';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -31,18 +33,17 @@ export default function Dashboard() {
 
   useEffect(() => {
     const configString = localStorage.getItem(BuzaConfigKey);
-    const defaultConfig: BuzaConfig = configString
-      ? parseConfig(configString)
-      : {
-        price: 6800,
-        deposit: 1000,
-        monthlyRent: 40,
-        rentRate: 60,
-        surTaxRate: 6,
-        registrationTaxRate: 4.6,
-        interestRate: 3.5,
-        commissionRate: 0.9,
-      };
+    const config: BuzaConfig | undefined = configString && parseConfig(configString);
+    const defaultConfig: BuzaConfig = config ? config : {
+      price: 6800,
+      deposit: 1000,
+      monthlyRent: 40,
+      rentRate: 60,
+      surTaxRate: 6,
+      registrationTaxRate: 4.6,
+      interestRate: 3.5,
+      commissionRate: 0.9,
+    };
     setLocalConfig(defaultConfig);
   }, []);
 
@@ -54,7 +55,7 @@ export default function Dashboard() {
         <script data-ad-client="ca-pub-7233017559577101" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
       </Head>
 
-      {localConfig && <Home config={localConfig} />}
+      {localConfig !== null && <Home config={localConfig} />}
 
       <footer>
         Made by Everdeen
