@@ -52,6 +52,8 @@ export default function Dashboard() {
       <Head>
         <title>우쿨나뭇잎의 상가 수익율 계산기</title>
         <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png" />
         <script data-ad-client="ca-pub-7233017559577101" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
       </Head>
 
