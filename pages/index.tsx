@@ -200,13 +200,6 @@ export default function Home() {
             />
           </CardContent>
         </Card>
-        <GoogleBanner
-          client='ca-pub-7233017559577101'
-          slot='3679477717'
-          style={{ display: 'block' }}
-          format='auto'
-          responsive='true'
-        />
         <Card variant="outlined" className={classes.card}>
           <CardContent>
             <Typography variant="h6" component="h1" gutterBottom>
@@ -316,6 +309,27 @@ export default function Home() {
         <Card variant="outlined" className={classes.card}>
           <CardContent>
             <Typography variant="h6" component="h1" gutterBottom>
+              레버리지
+              </Typography>
+            <TextField
+              className={classes.textField}
+              label="대출금"
+              value={loanedMoney}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+            <TextField
+              className={classes.textField}
+              label="보증금"
+              value={deposit * 10000}
+              size="small"
+              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
+            />
+          </CardContent>
+        </Card>
+        <Card variant="outlined" className={classes.card}>
+          <CardContent>
+            <Typography variant="h6" component="h1" gutterBottom>
               지출
               </Typography>
             <TextField
@@ -344,28 +358,6 @@ export default function Home() {
             </Typography>
           </CardContent>
         </Card>
-        <Card variant="outlined" className={classes.card}>
-          <CardContent>
-            <Typography variant="h6" component="h1" gutterBottom>
-              레버리지
-              </Typography>
-            <TextField
-              className={classes.textField}
-              label="대출금"
-              value={loanedMoney}
-              size="small"
-              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
-            />
-            <TextField
-              className={classes.textField}
-              label="보증금"
-              value={deposit * 10000}
-              size="small"
-              InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
-            />
-          </CardContent>
-        </Card>
-
         <Card variant="outlined" className={classes.card}>
           <CardContent>
             <Typography variant="h6" component="h1" gutterBottom>
@@ -408,6 +400,13 @@ export default function Home() {
             />
           </CardContent>
         </Card>
+        <GoogleBanner
+          client='ca-pub-7233017559577101'
+          slot='3679477717'
+          style={{ display: 'block' }}
+          format='auto'
+          responsive='true'
+        />
       </Box>
 
       <footer>
@@ -419,6 +418,7 @@ export default function Home() {
         body {
           padding: 0;
           margin: 0;
+          margin-top: 10px;
           font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
             Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue,
             sans-serif;
