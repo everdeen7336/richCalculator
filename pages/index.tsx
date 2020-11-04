@@ -200,17 +200,13 @@ export default function Home() {
             />
           </CardContent>
         </Card>
-        <Card variant="outlined" className={classes.card}>
-          <CardContent>
-            <GoogleBanner
-              client='ca-pub-7233017559577101'
-              slot='3679477717'
-              style={{ display: 'block' }}
-              format='auto'
-              responsive='true'
-            />
-          </CardContent>
-        </Card>
+        <GoogleBanner
+          client='ca-pub-7233017559577101'
+          slot='3679477717'
+          style={{ display: 'block' }}
+          format='auto'
+          responsive='true'
+        />
         <Card variant="outlined" className={classes.card}>
           <CardContent>
             <Typography variant="h6" component="h1" gutterBottom>
