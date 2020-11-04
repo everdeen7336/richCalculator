@@ -172,7 +172,7 @@ export default function Home() {
       </Head>
 
       <Typography variant="h3" component="h1" >
-        우쿨나뭇잎의 상가 수익율 계산기
+        상가 수익율 계산기
       </Typography>
       <Box my={4} margin={0}>
         <Card variant="outlined" className={classes.card}>
