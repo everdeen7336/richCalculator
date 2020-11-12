@@ -175,7 +175,7 @@ export default function Home(props: HomeProps) {
         // 로컬스토리지 저장
         const screenConfig: BuzaConfig = {
             price: price * 10000,
-            deposit: deposit  * 10000,
+            deposit: deposit * 10000,
             monthlyRent: monthlyRent * 10000,
             rentRate,
             surTaxRate,
@@ -430,13 +430,11 @@ export default function Home(props: HomeProps) {
                         />
                     </CardContent>
                 </Card>
-                <GoogleBanner
-                    client='ca-pub-7233017559577101'
-                    slot='3679477717'
-                    style={{ display: 'block' }}
-                    format='auto'
-                    responsive='true'
-                />
+                <ins className="kakao_ad_area" style={{ display: "none" }}
+                    data-ad-unit="DAN-5h2qZkJGgVNjQpgM"
+                    data-ad-width="320"
+                    data-ad-height="50"></ins>
+                <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
             </Box>
         </>
     )
