@@ -13,6 +13,7 @@
     "next": "9.5.3",
     "prop-types": "latest",
     "react": "16.13.1",
+    "react-adfit-web-component": "^1.0.2",
     "react-dom": "16.13.1",
     "react-number-format": "^4.4.1"
   },

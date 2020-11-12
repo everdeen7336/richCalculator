@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, createStyles, makeStyles, TextField, Theme, Typography, withStyles } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import NumberFormat from 'react-number-format';
-import GoogleBanner from './GoogleBanner';
+import AdfitWebComponent from 'react-adfit-web-component'
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -430,11 +430,12 @@ export default function Home(props: HomeProps) {
                         />
                     </CardContent>
                 </Card>
-                <ins className="kakao_ad_area" style={{ display: "none" }}
-                    data-ad-unit="DAN-5h2qZkJGgVNjQpgM"
-                    data-ad-width="320"
-                    data-ad-height="50"></ins>
-                <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+                <AdfitWebComponent
+                    adUnit="DAN-5h2qZkJGgVNjQpgM"
+                    className="kakao_ad_area"
+                    adWidth="320"
+                    adHeight="50"
+                />
             </Box>
         </>
     )
