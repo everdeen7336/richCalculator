@@ -50,7 +50,7 @@ export default function Dashboard() {
   return (
     <Container maxWidth="lg" className={classes.root}>
       <Head>
-        <title>우쿨나뭇잎의 상가 수익율 계산기</title>
+        <title>토키보의 상가 수익율 계산기</title>
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png" />
@@ -60,7 +60,8 @@ export default function Dashboard() {
       {localConfig !== null && <Home config={localConfig} />}
 
       <footer>
-        Made by Everdeen
+        토키보
+
       </footer>
 
       <style jsx global>{`
