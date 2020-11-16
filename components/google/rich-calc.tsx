@@ -204,6 +204,12 @@ export default function Home(props: HomeProps) {
             <Typography variant="h4" component="h1" className={classes.pageTitle}>
                 상가 수익율 계산기
             </Typography>
+            <AdfitWebComponent
+                    adUnit="DAN-5h2qZkJGgVNjQpgM"
+                    className="kakao_ad_area"
+                    adWidth="320"
+                    adHeight="50"
+                />
             <Box my={4} margin={0}>
                 <Card variant="outlined" className={classes.card}>
                     <CardContent>
@@ -430,12 +436,6 @@ export default function Home(props: HomeProps) {
                         />
                     </CardContent>
                 </Card>
-                <AdfitWebComponent
-                    adUnit="DAN-5h2qZkJGgVNjQpgM"
-                    className="kakao_ad_area"
-                    adWidth="320"
-                    adHeight="50"
-                />
             </Box>
         </>
     )
