@@ -390,7 +390,7 @@ export default function Home(props: HomeProps) {
                             InputProps={{ readOnly: true, inputComponent: NumberFormatCustom as any, }}
                         />
                         <Typography component="p">
-                            취등록세는 매매가 기준이며, 공시지가 기준이 아닙니다.
+                            취등록세는 매매가 기준이며, 공시지가 기준이 아닙니다. 법무등기비용은 포함되지 않았습니다.
                         </Typography>
                     </CardContent>
                 </Card>
