@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.airport.kr)",
+      "Bash(ls:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(node -e:*)"
+    ]
+  }
+}

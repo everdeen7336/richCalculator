@@ -1,6 +1,5 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import * as XLSX from 'xlsx';
 import {
   Terminal,
   HourlyInOutData,
@@ -17,15 +16,16 @@ const http = axios.create({
   baseURL: AIRPORT_BASE_URL,
   timeout: 15000,
   headers: {
-    'User-Agent': 'IncheonAirportDashboard/1.0',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
     'Accept-Language': 'ko-KR,ko;q=0.9',
+    'Content-Type': 'application/x-www-form-urlencoded',
   },
-  responseType: 'arraybuffer',
 });
 
-function getTerminalParam(terminal: Terminal): string {
-  return terminal; // T1, T2
-}
+// 출입국별 페이지 layout 파라미터 (883번 페이지)
+const INOUT_LAYOUT = '61705f6b6f40403838334040';
+// 노선별 페이지 layout 파라미터 (884번 페이지)
+const ROUTE_LAYOUT = '61705f6b6f40403838344040';
 
 function getTodayDate(): string {
   const now = new Date();
@@ -46,131 +46,136 @@ function makeTimeSlot(hour: number): string {
   return `${h}:00~${next}:00`;
 }
 
-async function fetchInOutExcel(terminal: Terminal, date: string): Promise<{ departure: HourlyInOutData['departure'][]; arrival: HourlyInOutData['arrival'][] }> {
-  const url = `${FORECAST_URLS.INOUT_EXCEL}?selTm=${getTerminalParam(terminal)}&pday=${date}`;
-  logger.info(`Fetching InOut excel: ${url}`);
+/**
+ * 출입국별 HTML POST로 데이터 가져오기
+ * POST /pni/ap_ko/statisticPredictCrowdedOfInout.do
+ * 테이블 구조: 시간 | 입국장(A,B / C / D / E,F / 합계) | 출국장(1 / 2 / 3 / 4 / 5,6 / 합계)
+ */
+async function fetchInOutHtml(
+  terminal: Terminal,
+  date: string,
+): Promise<{ departure: HourlyInOutData['departure'][]; arrival: HourlyInOutData['arrival'][] }> {
+  const url = '/pni/ap_ko/statisticPredictCrowdedOfInout.do';
+  logger.info(`Fetching InOut HTML: ${url} (${terminal}, ${date})`);
 
-  const response = await http.get(url, { responseType: 'arraybuffer' });
-  const workbook = XLSX.read(response.data, { type: 'buffer' });
+  const response = await http.post(url, `selTm=${terminal}&pday=${date}&layout=${INOUT_LAYOUT}`, {
+    responseType: 'text',
+  });
 
-  // Sheet 0: 출국승객예고 - rows 20-43 are hourly departure data
-  const departureSheet = workbook.Sheets[workbook.SheetNames[0]];
-  const depData = XLSX.utils.sheet_to_json<(string | number)[]>(departureSheet, { header: 1 });
+  const $ = cheerio.load(response.data as string);
 
   const departures: HourlyInOutData['departure'][] = [];
-  // Find the hourly data section (starts with "0~1시" pattern)
-  let depStartRow = -1;
-  for (let i = 0; i < depData.length; i++) {
-    const firstCell = String(depData[i]?.[0] ?? '');
-    if (firstCell.match(/^0~1/)) {
-      depStartRow = i;
-      break;
-    }
-  }
-
-  if (depStartRow >= 0) {
-    for (let h = 0; h < 24; h++) {
-      const row = depData[depStartRow + h];
-      if (!row) break;
-      departures.push({
-        gate1: Number(row[1]) || 0,
-        gate2: Number(row[2]) || 0,
-        gate3: Number(row[3]) || 0,
-        gate4: Number(row[4]) || 0,
-        gate56: Number(row[5]) || 0,
-        total: Number(row[6]) || 0,
-      });
-    }
-  }
-
-  // Sheet 1: 입국승객예고
-  const arrivalSheet = workbook.Sheets[workbook.SheetNames[1]];
-  const arrData = XLSX.utils.sheet_to_json<(string | number)[]>(arrivalSheet, { header: 1 });
-
   const arrivals: HourlyInOutData['arrival'][] = [];
-  let arrStartRow = -1;
-  for (let i = 0; i < arrData.length; i++) {
-    const firstCell = String(arrData[i]?.[0] ?? '');
-    if (firstCell.match(/^0~1/)) {
-      arrStartRow = i;
-      break;
-    }
+
+  // 두 번째 테이블이 시간대별 데이터 (첫 번째는 대기시간)
+  const tables = $('table');
+  const dataTable = tables.length > 1 ? tables.eq(1) : tables.eq(0);
+  const rows = dataTable.find('tr').toArray();
+
+  for (const row of rows) {
+    // 시간 셀은 <th>, 데이터 셀은 <td>
+    const allCells = $(row).find('th, td');
+    if (allCells.length < 12) continue;
+
+    const timeText = allCells.eq(0).text().trim();
+    const hour = parseHour(timeText);
+    if (hour < 0 || hour > 23) continue;
+
+    // 입국장: A,B(1) / C(2) / D(3) / E,F(4) / 합계(5)
+    arrivals.push({
+      ab: parseInt(allCells.eq(1).text().replace(/,/g, '').trim(), 10) || 0,
+      c: parseInt(allCells.eq(2).text().replace(/,/g, '').trim(), 10) || 0,
+      d: parseInt(allCells.eq(3).text().replace(/,/g, '').trim(), 10) || 0,
+      ef: parseInt(allCells.eq(4).text().replace(/,/g, '').trim(), 10) || 0,
+      total: parseInt(allCells.eq(5).text().replace(/,/g, '').trim(), 10) || 0,
+    });
+
+    // 출국장: 1(6) / 2(7) / 3(8) / 4(9) / 5,6(10) / 합계(11)
+    departures.push({
+      gate1: parseInt(allCells.eq(6).text().replace(/,/g, '').trim(), 10) || 0,
+      gate2: parseInt(allCells.eq(7).text().replace(/,/g, '').trim(), 10) || 0,
+      gate3: parseInt(allCells.eq(8).text().replace(/,/g, '').trim(), 10) || 0,
+      gate4: parseInt(allCells.eq(9).text().replace(/,/g, '').trim(), 10) || 0,
+      gate56: parseInt(allCells.eq(10).text().replace(/,/g, '').trim(), 10) || 0,
+      total: parseInt(allCells.eq(11).text().replace(/,/g, '').trim(), 10) || 0,
+    });
   }
 
-  if (arrStartRow >= 0) {
-    for (let h = 0; h < 24; h++) {
-      const row = arrData[arrStartRow + h];
-      if (!row) break;
-      arrivals.push({
-        ab: Number(row[1]) || 0,
-        c: Number(row[2]) || 0,
-        d: Number(row[3]) || 0,
-        ef: Number(row[4]) || 0,
-        total: Number(row[5]) || 0,
-      });
-    }
-  }
-
+  logger.info(`InOut parsed: ${departures.length} departure hours, ${arrivals.length} arrival hours`);
   return { departure: departures, arrival: arrivals };
 }
 
+/**
+ * 노선별 HTML POST로 데이터 가져오기
+ * POST /pni/ap_ko/statisticPredictCrowdedOfRoute.do
+ * 테이블 구조: 시간 | 일본 | 중국 | 동남아 | 미주 | 유럽 | 오세아니아 | 기타
+ */
 async function fetchRouteHtml(terminal: Terminal, date: string): Promise<HourlyRouteData[]> {
-  const url = `${FORECAST_URLS.ROUTE_HTML}?selTm=${getTerminalParam(terminal)}&pday=${date}&layout=61705f6b6f40403838344040`;
-  logger.info(`Fetching Route HTML: ${url}`);
+  const url = '/pni/ap_ko/statisticPredictCrowdedOfRoute.do';
+  logger.info(`Fetching Route HTML: ${url} (${terminal}, ${date})`);
 
-  const response = await http.get(url, { responseType: 'text' });
+  const response = await http.post(url, `selTm=${terminal}&pday=${date}&layout=${ROUTE_LAYOUT}`, {
+    responseType: 'text',
+  });
+
   const $ = cheerio.load(response.data as string);
 
   const routes: HourlyRouteData[] = [];
-  const rows = $('table tbody tr, table tr').toArray();
+  const rows = $('table tr').toArray();
 
   for (const row of rows) {
-    const cells = $(row).find('td');
-    if (cells.length < 8) continue;
+    // 시간 셀은 <th>, 데이터 셀은 <td>
+    const allCells = $(row).find('th, td');
+    if (allCells.length < 8) continue;
 
-    const timeText = cells.eq(0).text().trim();
+    const timeText = allCells.eq(0).text().trim();
     const hour = parseHour(timeText);
     if (hour < 0 || hour > 23) continue;
 
     routes.push({
       hour,
       timeSlot: makeTimeSlot(hour),
-      japan: parseInt(cells.eq(1).text().replace(/,/g, '').trim(), 10) || 0,
-      china: parseInt(cells.eq(2).text().replace(/,/g, '').trim(), 10) || 0,
-      southeastAsia: parseInt(cells.eq(3).text().replace(/,/g, '').trim(), 10) || 0,
-      northAmerica: parseInt(cells.eq(4).text().replace(/,/g, '').trim(), 10) || 0,
-      europe: parseInt(cells.eq(5).text().replace(/,/g, '').trim(), 10) || 0,
-      oceania: parseInt(cells.eq(6).text().replace(/,/g, '').trim(), 10) || 0,
-      other: parseInt(cells.eq(7).text().replace(/,/g, '').trim(), 10) || 0,
+      japan: parseInt(allCells.eq(1).text().replace(/,/g, '').trim(), 10) || 0,
+      china: parseInt(allCells.eq(2).text().replace(/,/g, '').trim(), 10) || 0,
+      southeastAsia: parseInt(allCells.eq(3).text().replace(/,/g, '').trim(), 10) || 0,
+      northAmerica: parseInt(allCells.eq(4).text().replace(/,/g, '').trim(), 10) || 0,
+      europe: parseInt(allCells.eq(5).text().replace(/,/g, '').trim(), 10) || 0,
+      oceania: parseInt(allCells.eq(6).text().replace(/,/g, '').trim(), 10) || 0,
+      other: parseInt(allCells.eq(7).text().replace(/,/g, '').trim(), 10) || 0,
     });
   }
 
   // Deduplicate by hour
   const seen = new Set<number>();
-  return routes.filter((r) => {
-    if (seen.has(r.hour)) return false;
-    seen.add(r.hour);
-    return true;
-  }).sort((a, b) => a.hour - b.hour);
+  const deduped = routes
+    .filter((r) => {
+      if (seen.has(r.hour)) return false;
+      seen.add(r.hour);
+      return true;
+    })
+    .sort((a, b) => a.hour - b.hour);
+
+  logger.info(`Route parsed: ${deduped.length} hours`);
+  return deduped;
 }
 
 export async function scrapeForecast(terminal: Terminal, date?: string): Promise<CongestionForecast> {
   const targetDate = date || getTodayDate();
   logger.info(`Scraping forecast for ${terminal}, date: ${targetDate}`);
 
-  const [inOutResult, routeData] = await Promise.allSettled([
-    fetchInOutExcel(terminal, targetDate),
+  const [inOutResult, routeResult] = await Promise.allSettled([
+    fetchInOutHtml(terminal, targetDate),
     fetchRouteHtml(terminal, targetDate),
   ]);
 
   const inOut = inOutResult.status === 'fulfilled' ? inOutResult.value : { departure: [], arrival: [] };
-  const routes = routeData.status === 'fulfilled' ? routeData.value : [];
+  const routes = routeResult.status === 'fulfilled' ? routeResult.value : [];
 
   if (inOutResult.status === 'rejected') {
     logger.error('Failed to fetch InOut data', inOutResult.reason);
   }
-  if (routeData.status === 'rejected') {
-    logger.error('Failed to fetch Route data', routeData.reason);
+  if (routeResult.status === 'rejected') {
+    logger.error('Failed to fetch Route data', routeResult.reason);
   }
 
   // Combine into HourlyInOutData
@@ -188,8 +193,8 @@ export async function scrapeForecast(terminal: Terminal, date?: string): Promise
   const totalDeparture = inOutData.reduce((sum, d) => sum + d.departure.total, 0);
   const totalArrival = inOutData.reduce((sum, d) => sum + d.arrival.total, 0);
 
-  const peakDep = inOutData.reduce((max, d) => d.departure.total > max.departure.total ? d : max, inOutData[0]);
-  const peakArr = inOutData.reduce((max, d) => d.arrival.total > max.arrival.total ? d : max, inOutData[0]);
+  const peakDep = inOutData.reduce((max, d) => (d.departure.total > max.departure.total ? d : max), inOutData[0]);
+  const peakArr = inOutData.reduce((max, d) => (d.arrival.total > max.arrival.total ? d : max), inOutData[0]);
 
   return {
     terminal,

@@ -4,6 +4,7 @@ import {
   DashboardApiResponse,
   ParkingApiResponse,
   CongestionApiResponse,
+  CongestionForecastApiResponse,
 } from '@/types';
 
 const api = axios.create({
@@ -37,6 +38,16 @@ export async function fetchCongestion(
 ): Promise<CongestionApiResponse> {
   const { data } = await api.get<CongestionApiResponse>(`/congestion/${terminal}`, {
     params: refresh ? { refresh: 'true' } : undefined,
+  });
+  return data;
+}
+
+export async function fetchForecast(
+  terminal: Terminal,
+  date?: string,
+): Promise<CongestionForecastApiResponse> {
+  const { data } = await api.get<CongestionForecastApiResponse>(`/forecast/${terminal}`, {
+    params: date ? { date } : undefined,
   });
   return data;
 }
