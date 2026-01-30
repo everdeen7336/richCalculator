@@ -72,33 +72,36 @@ async function fetchInOutHtml(
   const dataTable = tables.length > 1 ? tables.eq(1) : tables.eq(0);
   const rows = dataTable.find('tr').toArray();
 
+  // 헤더 행에서 컬럼 수를 파악하여 T1/T2 구분
+  // T1: 시간 | A,B | C | D | E,F | 합계 | 1 | 2 | 3 | 4 | 5,6 | 합계 (12 cols)
+  // T2: 시간 | A | B | 합계 | 1 | 2 | 합계 (7 cols)
+  const isT2 = terminal === 'T2';
+
   for (const row of rows) {
     // 시간 셀은 <th>, 데이터 셀은 <td>
     const allCells = $(row).find('th, td');
-    if (allCells.length < 12) continue;
+    const cellCount = allCells.length;
+
+    // T1은 12개, T2는 7개 컬럼
+    if (isT2 ? cellCount < 7 : cellCount < 12) continue;
 
     const timeText = allCells.eq(0).text().trim();
     const hour = parseHour(timeText);
     if (hour < 0 || hour > 23) continue;
 
-    // 입국장: A,B(1) / C(2) / D(3) / E,F(4) / 합계(5)
-    arrivals.push({
-      ab: parseInt(allCells.eq(1).text().replace(/,/g, '').trim(), 10) || 0,
-      c: parseInt(allCells.eq(2).text().replace(/,/g, '').trim(), 10) || 0,
-      d: parseInt(allCells.eq(3).text().replace(/,/g, '').trim(), 10) || 0,
-      ef: parseInt(allCells.eq(4).text().replace(/,/g, '').trim(), 10) || 0,
-      total: parseInt(allCells.eq(5).text().replace(/,/g, '').trim(), 10) || 0,
-    });
+    const p = (idx: number) => parseInt(allCells.eq(idx).text().replace(/,/g, '').trim(), 10) || 0;
 
-    // 출국장: 1(6) / 2(7) / 3(8) / 4(9) / 5,6(10) / 합계(11)
-    departures.push({
-      gate1: parseInt(allCells.eq(6).text().replace(/,/g, '').trim(), 10) || 0,
-      gate2: parseInt(allCells.eq(7).text().replace(/,/g, '').trim(), 10) || 0,
-      gate3: parseInt(allCells.eq(8).text().replace(/,/g, '').trim(), 10) || 0,
-      gate4: parseInt(allCells.eq(9).text().replace(/,/g, '').trim(), 10) || 0,
-      gate56: parseInt(allCells.eq(10).text().replace(/,/g, '').trim(), 10) || 0,
-      total: parseInt(allCells.eq(11).text().replace(/,/g, '').trim(), 10) || 0,
-    });
+    if (isT2) {
+      // T2 입국장: A(1) / B(2) / 합계(3)
+      arrivals.push({ ab: p(1) + p(2), c: 0, d: 0, ef: 0, total: p(3) });
+      // T2 출국장: 1(4) / 2(5) / 합계(6)
+      departures.push({ gate1: p(4), gate2: p(5), gate3: 0, gate4: 0, gate56: 0, total: p(6) });
+    } else {
+      // T1 입국장: A,B(1) / C(2) / D(3) / E,F(4) / 합계(5)
+      arrivals.push({ ab: p(1), c: p(2), d: p(3), ef: p(4), total: p(5) });
+      // T1 출국장: 1(6) / 2(7) / 3(8) / 4(9) / 5,6(10) / 합계(11)
+      departures.push({ gate1: p(6), gate2: p(7), gate3: p(8), gate4: p(9), gate56: p(10), total: p(11) });
+    }
   }
 
   logger.info(`InOut parsed: ${departures.length} departure hours, ${arrivals.length} arrival hours`);

@@ -14,7 +14,7 @@ import { ErrorMessage } from '@/components/common/ErrorMessage';
 function ForecastLinkCard() {
   return (
     <Link
-      href="/air/congestion/inout"
+      href="/air/congestion/departure"
       className="block bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-5 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-0.5"
     >
       <div className="flex items-center justify-between">

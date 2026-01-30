@@ -5,15 +5,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const tabs = [
-  { href: '/air/congestion/inout', label: '출입국별' },
-  { href: '/air/congestion/route', label: '노선별' },
+  { href: '/air/congestion/departure', label: '✈️ 출국', desc: '떠나는 분' },
+  { href: '/air/congestion/arrival', label: '🛬 입국', desc: '돌아오는 분' },
 ];
 
 function CongestionNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-2 justify-center mb-6">
+    <nav className="flex gap-3 justify-center mb-6">
       {tabs.map((tab) => {
         const isActive = pathname === tab.href;
         return (
@@ -21,15 +21,18 @@ function CongestionNav() {
             key={tab.href}
             href={tab.href}
             className={`
-              px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-200
+              flex flex-col items-center px-7 py-3 rounded-2xl text-sm transition-all duration-200
               ${
                 isActive
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  ? 'bg-blue-600 text-white shadow-lg scale-105'
+                  : 'bg-white text-gray-600 hover:bg-gray-50 shadow-md'
               }
             `}
           >
-            {tab.label}
+            <span className="text-base font-bold">{tab.label}</span>
+            <span className={`text-[10px] mt-0.5 ${isActive ? 'text-blue-200' : 'text-gray-400'}`}>
+              {tab.desc}
+            </span>
           </Link>
         );
       })}
