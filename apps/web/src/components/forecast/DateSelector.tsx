@@ -18,21 +18,34 @@ function formatDateLabel(dateStr: string): { day: string; weekday: string } {
   };
 }
 
-function isToday(dateStr: string): boolean {
+function getDayDiff(dateStr: string): number {
   const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return dateStr === `${y}${m}${d}`;
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const y = parseInt(dateStr.slice(0, 4), 10);
+  const m = parseInt(dateStr.slice(4, 6), 10) - 1;
+  const d = parseInt(dateStr.slice(6, 8), 10);
+  const target = new Date(y, m, d);
+  return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+function getRelativeLabel(diff: number, weekday: string): string {
+  if (diff === 0) return '오늘';
+  if (diff === -1) return '어제';
+  if (diff === 1) return '내일';
+  if (diff === 2) return '모레';
+  return weekday;
 }
 
 export function DateSelector({ dates, selected, onSelect }: DateSelectorProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-2">
+    <div className="flex gap-2 overflow-x-auto pb-2 justify-center">
       {dates.map((dateStr) => {
         const { day, weekday } = formatDateLabel(dateStr);
+        const diff = getDayDiff(dateStr);
+        const label = getRelativeLabel(diff, weekday);
         const isSelected = selected === dateStr;
-        const today = isToday(dateStr);
+        const isToday = diff === 0;
+        const isFuture = diff > 0;
 
         return (
           <button
@@ -44,12 +57,16 @@ export function DateSelector({ dates, selected, onSelect }: DateSelectorProps) {
               ${
                 isSelected
                   ? 'bg-blue-600 text-white border-blue-600 shadow-md'
-                  : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
+                  : isToday
+                    ? 'bg-blue-50 text-blue-700 border-blue-200 hover:border-blue-400'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300'
               }
             `}
           >
-            <span className={`text-xs ${isSelected ? 'text-blue-100' : 'text-gray-400'}`}>
-              {today ? '오늘' : weekday}
+            <span className={`text-xs font-medium ${
+              isSelected ? 'text-blue-100' : isToday ? 'text-blue-500' : isFuture ? 'text-green-500' : 'text-gray-400'
+            }`}>
+              {label}
             </span>
             <span className="text-sm font-bold">{day}</span>
           </button>

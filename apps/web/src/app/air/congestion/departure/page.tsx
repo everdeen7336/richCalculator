@@ -9,9 +9,10 @@ import { CongestionHeatmap } from '@/components/forecast/CongestionHeatmap';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
 
+/** 과거 4일 + 오늘 + 미래 2일 = 7일 (공항 사이트와 동일) */
 function getDateRange(): string[] {
   const dates: string[] = [];
-  for (let i = 0; i < 7; i++) {
+  for (let i = -4; i <= 2; i++) {
     const d = new Date();
     d.setDate(d.getDate() + i);
     const y = d.getFullYear();
@@ -67,7 +68,7 @@ function getDepartureGateLabel(terminal: Terminal, gateKey: string): string {
 
 export default function DeparturePage() {
   const dates = getDateRange();
-  const [selectedDate, setSelectedDate] = useState(dates[0]);
+  const [selectedDate, setSelectedDate] = useState(dates[4]);
   const [selectedTerminal, setSelectedTerminal] = useState<Terminal>(Terminal.T1);
   const { data, isLoading, isError, error, refetch } = useForecast(selectedTerminal, selectedDate);
   const currentHour = new Date().getHours();
