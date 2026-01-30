@@ -43,7 +43,7 @@ export class ParkingScraper extends BaseScraper<ParkingInfo> {
     this.logger.debug(`Scraping short-term parking: ${url}`);
 
     try {
-      const $ = await this.fetchPage(url);
+      const $ = await this.fetchPage(url!);
       const floors = this.parser.parseShortTermFloors($, this.terminal);
       const lastUpdated = this.parser.parseLastUpdated($);
 
