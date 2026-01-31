@@ -7,9 +7,20 @@ import type { JourneyItem } from '@/types/journey';
 /**
  * '비워내기' 계획 모드 — Distraction-free Canvas
  * - 장소 입력 → 분위기 키워드 노출
- * - 삭제 버튼
- * - 드래그 앤 드롭으로 순서 재정렬
+ * - 도시/지역 감지 → destination 자동 설정 → 날씨 위젯 연동
+ * - 삭제 + 드래그 재정렬
  */
+
+/** 도시 감지용 키워드 (API Route의 CITY_COORDS와 동기화) */
+const DESTINATION_KEYWORDS = [
+  '발리', '방콕', '싱가포르', '호치민', '하노이', '다낭', '세부',
+  '보라카이', '푸켓', '치앙마이', '코타키나발루', '쿠알라룸푸르',
+  '도쿄', '오사카', '후쿠오카', '삿포로', '교토', '나고야', '오키나와',
+  '상하이', '베이징', '홍콩', '타이베이', '마카오',
+  '파리', '런던', '로마', '바르셀로나', '프라하', '암스테르담', '뮌헨', '취리히', '이스탄불',
+  '뉴욕', '로스앤젤레스', 'LA', '하와이', '샌프란시스코', '시드니', '괌', '사이판',
+  '제주', '부산', '서울', '경주', '강릉', '여수',
+];
 
 const MOOD_DATA: Record<string, { quiet: string; mood: string }> = {
   '카페': { quiet: '오전 10시 이전', mood: '조용히 책 읽기 좋아요' },
@@ -39,25 +50,44 @@ function findMood(name: string) {
   return null;
 }
 
+/** 입력 텍스트에서 도시/지역 감지 */
+function detectDestination(name: string): string | null {
+  for (const city of DESTINATION_KEYWORDS) {
+    if (name.includes(city)) return city;
+  }
+  return null;
+}
+
 export default function CanvasSearch() {
   const [input, setInput] = useState('');
   const [moodInfo, setMoodInfo] = useState<{ quiet: string; mood: string } | null>(null);
+  const [detectedCity, setDetectedCity] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dragItem = useRef<number | null>(null);
   const dragOver = useRef<number | null>(null);
 
-  const { addItem, removeItem, items, moveItem } = useJourneyStore();
+  const { addItem, removeItem, items, moveItem, destination, setDestination } = useJourneyStore();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const mood = findMood(input);
+    const trimmed = input.trim();
+    const mood = findMood(trimmed);
+
+    // 도시 감지 → destination 자동 설정
+    const city = detectDestination(trimmed);
+    if (city && city !== destination) {
+      setDestination(city);
+      setDetectedCity(city);
+      setTimeout(() => setDetectedCity(null), 3000);
+    }
+
     const newItem: JourneyItem = {
       id: Date.now().toString(),
       place: {
         id: Date.now().toString(),
-        name: input.trim(),
+        name: trimmed,
         moodKeyword: mood?.mood,
         quietHours: mood?.quiet,
       },
@@ -92,7 +122,14 @@ export default function CanvasSearch() {
 
   return (
     <div className="bento-card">
-      <p className="bento-label mb-4">가고 싶은 곳</p>
+      <div className="flex items-center justify-between mb-4">
+        <p className="bento-label">가고 싶은 곳</p>
+        {destination && (
+          <span className="text-[10px] text-[var(--accent)] font-medium">
+            📍 {destination}
+          </span>
+        )}
+      </div>
 
       <form onSubmit={handleSubmit} className="relative">
         <input
@@ -111,9 +148,18 @@ export default function CanvasSearch() {
         />
       </form>
 
+      {/* City detected notification */}
+      {detectedCity && (
+        <div className="mt-3 fade-in">
+          <p className="text-xs text-[var(--accent)]">
+            ✈️ {detectedCity} 날씨를 불러올게요
+          </p>
+        </div>
+      )}
+
       {/* Mood info */}
-      {moodInfo && (
-        <div className="mt-4 fade-in">
+      {moodInfo && !detectedCity && (
+        <div className="mt-3 fade-in">
           <p className="text-sm text-[var(--accent)]">{moodInfo.mood}</p>
           <p className="text-[11px] text-[var(--text-muted)] mt-1">
             조용한 시간: {moodInfo.quiet}
