@@ -72,6 +72,86 @@ export interface VisitRecord {
 }
 
 /**
+ * 비행편 정보
+ */
+export interface FlightInfo {
+  flightNumber: string;
+  airline: string;
+  departure: {
+    airport: string;
+    city: string;
+    scheduledTime: string;
+    terminal?: string;
+    gate?: string;
+  };
+  arrival: {
+    airport: string;
+    city: string;
+    scheduledTime: string;
+    terminal?: string;
+  };
+  status: FlightStatus;
+  durationMinutes: number;
+  source: 'api' | 'simulated';
+}
+
+export type FlightStatus =
+  | 'scheduled' | 'boarding' | 'departed' | 'in_air'
+  | 'landed' | 'arrived' | 'delayed' | 'cancelled';
+
+export const FLIGHT_STATUS_LABEL: Record<FlightStatus, string> = {
+  scheduled: '예정',
+  boarding: '탑승 중',
+  departed: '출발',
+  in_air: '비행 중',
+  landed: '착륙',
+  arrived: '도착',
+  delayed: '지연',
+  cancelled: '취소',
+};
+
+/** 비행편 기준 출국 체크리스트 (실제 시각 포함) */
+export function generateFlightChecklist(departureTime: string): ChecklistItem[] {
+  const dep = new Date(departureTime);
+  const fmt = (d: Date) => d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const steps = [
+    { m: -180, label: '공항 도착' },
+    { m: -150, label: '체크인 & 수화물' },
+    { m: -120, label: '보안 검색' },
+    { m: -90,  label: '출국 심사' },
+    { m: -60,  label: '면세 쇼핑' },
+    { m: -40,  label: '탑승구 이동' },
+    { m: -30,  label: '탑승 시작' },
+    { m: 0,    label: '이륙 🛫' },
+  ];
+  return steps.map((s, i) => ({
+    id: `fl-${i}`,
+    time: fmt(new Date(dep.getTime() + s.m * 60000)),
+    label: s.label,
+    done: false,
+  }));
+}
+
+/** 비행편 기준 입국 체크리스트 */
+export function generateArrivalChecklist(arrivalTime: string): ChecklistItem[] {
+  const arr = new Date(arrivalTime);
+  const fmt = (d: Date) => d.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const steps = [
+    { m: 0,   label: '착륙 🛬' },
+    { m: 15,  label: '입국 심사' },
+    { m: 35,  label: '수화물 수취' },
+    { m: 50,  label: '세관 검사' },
+    { m: 60,  label: '입국장 도착' },
+  ];
+  return steps.map((s, i) => ({
+    id: `ar-${i}`,
+    time: fmt(new Date(arr.getTime() + s.m * 60000)),
+    label: s.label,
+    done: false,
+  }));
+}
+
+/**
  * 여정 전체 상태
  */
 export interface JourneyState {
@@ -84,6 +164,8 @@ export interface JourneyState {
   totalBudget: number;
   departureDate?: string;
   destination?: string;
+  departureFlight?: FlightInfo;
+  returnFlight?: FlightInfo;
 }
 
 /**

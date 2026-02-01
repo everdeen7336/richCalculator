@@ -7,8 +7,9 @@ import type {
   Expense,
   ChecklistItem,
   VisitRecord,
+  FlightInfo,
 } from '@/types/journey';
-import { DEFAULT_CHECKLIST } from '@/types/journey';
+import { DEFAULT_CHECKLIST, generateFlightChecklist, generateArrivalChecklist } from '@/types/journey';
 
 interface JourneyStoreState {
   // ── State ──
@@ -54,6 +55,14 @@ interface JourneyStoreState {
   addVisitRecord: (record: VisitRecord) => void;
   updateVisitRecord: (itemId: string, updates: Partial<VisitRecord>) => void;
 
+  // ── Flight Actions ──
+  departureFlight: FlightInfo | null;
+  returnFlight: FlightInfo | null;
+  setDepartureFlight: (flight: FlightInfo) => void;
+  setReturnFlight: (flight: FlightInfo) => void;
+  clearReturnFlight: () => void;
+  clearFlights: () => void;
+
   // ── Global ──
   reset: () => void;
 }
@@ -89,6 +98,8 @@ export const useJourneyStore = create<JourneyStoreState>()(
       totalBudget: 1100000,
       departureDate: '',
       destination: '',
+      departureFlight: null,
+      returnFlight: null,
 
       // ── Journey ──
       setPhase: (phase) => set({ phase }),
@@ -172,6 +183,23 @@ export const useJourneyStore = create<JourneyStoreState>()(
           ),
         })),
 
+      // ── Flights ──
+      setDepartureFlight: (flight) =>
+        set((s) => {
+          // 비행 출발 시간으로 체크리스트 자동 생성
+          const checklist = generateFlightChecklist(flight.departure.scheduledTime);
+          // 목적지 자동 설정
+          const destination = flight.arrival.city || s.destination;
+          const departureDate = flight.departure.scheduledTime.split('T')[0] || s.departureDate;
+          return { departureFlight: flight, checklist, destination, departureDate };
+        }),
+      setReturnFlight: (flight) =>
+        set({ returnFlight: flight }),
+      clearReturnFlight: () =>
+        set({ returnFlight: null }),
+      clearFlights: () =>
+        set({ departureFlight: null, returnFlight: null, checklist: DEFAULT_CHECKLIST }),
+
       // ── Global ──
       reset: () =>
         set({
@@ -184,6 +212,8 @@ export const useJourneyStore = create<JourneyStoreState>()(
           totalBudget: 1100000,
           departureDate: '',
           destination: '',
+          departureFlight: null,
+          returnFlight: null,
         }),
     }),
     { name: 'journey-storage' }

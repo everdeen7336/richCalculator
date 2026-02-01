@@ -5,6 +5,8 @@ import ScheduleWidget from '@/components/bento/ScheduleWidget';
 import BudgetWidget from '@/components/bento/BudgetWidget';
 import AirportStatusWidget from '@/components/bento/AirportStatusWidget';
 import ClockWidget from '@/components/bento/ClockWidget';
+import FlightCard from '@/components/bento/FlightCard';
+import ReturnFlightCard from '@/components/bento/ReturnFlightCard';
 import QuickLinkCard from '@/components/bento/QuickLinkCard';
 import CanvasSearch from '@/components/journey/CanvasSearch';
 import SoftNudge from '@/components/journey/SoftNudge';
@@ -48,8 +50,15 @@ export default function Dashboard() {
             <div className="fade-in-up fade-in-delay-3">
               <QuickLinkCard href="/air/departure" title="출국" subtitle="여행을 떠나요" icon="✈️" />
             </div>
-            <div className="fade-in-up fade-in-delay-4">
+            <div className="fade-in-up fade-in-delay-3">
               <QuickLinkCard href="/air/arrival" title="입국" subtitle="돌아와요" icon="🛬" />
+            </div>
+
+            <div className="col-span-2 fade-in-up fade-in-delay-4">
+              <FlightCard />
+            </div>
+            <div className="col-span-2 fade-in-up fade-in-delay-4">
+              <ReturnFlightCard />
             </div>
 
             <div className="col-span-2 fade-in-up fade-in-delay-5">
@@ -59,7 +68,7 @@ export default function Dashboard() {
               <AirportStatusWidget />
             </div>
 
-            <div className="col-span-2 fade-in-up fade-in-delay-7">
+            <div className="col-span-2 fade-in-up fade-in-delay-6">
               <BudgetWidget />
             </div>
             <div className="col-span-2 fade-in-up fade-in-delay-7">
@@ -82,9 +91,16 @@ export default function Dashboard() {
             </div>
 
             <div className="col-span-2 fade-in-up fade-in-delay-4">
+              <FlightCard />
+            </div>
+            <div className="col-span-2 fade-in-up fade-in-delay-4">
+              <ReturnFlightCard />
+            </div>
+
+            <div className="col-span-2 fade-in-up fade-in-delay-5">
               <BudgetWidget />
             </div>
-            <div className="col-span-2 fade-in-up fade-in-delay-5">
+            <div className="col-span-2 fade-in-up fade-in-delay-6">
               <ScheduleWidget />
             </div>
           </div>
@@ -97,17 +113,20 @@ export default function Dashboard() {
               <ContextCard />
             </div>
 
-            <div className="col-span-2 fade-in-up fade-in-delay-3">
-              <AirportStatusWidget />
+            <div className="col-span-2 fade-in-up fade-in-delay-2">
+              <FlightCard />
             </div>
-            <div className="fade-in-up fade-in-delay-4">
+            <div className="col-span-2 fade-in-up fade-in-delay-2">
+              <ReturnFlightCard />
+            </div>
+            <div className="fade-in-up fade-in-delay-3">
               <WeatherWidget />
             </div>
-            <div className="fade-in-up fade-in-delay-5">
+            <div className="fade-in-up fade-in-delay-4">
               <ClockWidget />
             </div>
 
-            <div className="col-span-2 fade-in-up fade-in-delay-6">
+            <div className="col-span-2 fade-in-up fade-in-delay-5">
               <BudgetWidget />
             </div>
             <div className="col-span-2 fade-in-up fade-in-delay-6">
