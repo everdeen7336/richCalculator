@@ -107,7 +107,10 @@ export default function DeparturePage() {
   return (
     <main className="container mx-auto px-4 py-6 max-w-4xl">
       <header className="text-center mb-5">
-        <h1 className="text-2xl font-bold text-gray-800">✈️ 출국 여정</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          ✈️
+          <a href="/">출국 여정</a>
+        </h1>
         <p className="text-sm text-gray-500">공항 도착부터 탑승까지</p>
       </header>
 
@@ -124,7 +127,9 @@ export default function DeparturePage() {
             }`}
           >
             <div className="text-lg">{t}</div>
-            <div className={`text-xs ${selectedTerminal === t ? 'text-blue-100' : 'text-gray-400'}`}>
+            <div
+              className={`text-xs ${selectedTerminal === t ? 'text-blue-100' : 'text-gray-400'}`}
+            >
               {TERMINAL_CONFIG[t].nameKo}
             </div>
           </button>
@@ -134,21 +139,31 @@ export default function DeparturePage() {
       {/* ━━━ Step 1: 주차 ━━━ */}
       <section className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">Step 1</span>
+          <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1 rounded-full">
+            Step 1
+          </span>
           <h2 className="text-base font-bold text-gray-800">🅿️ 주차장</h2>
           <span className="text-xs text-gray-400">공항 도착하면 어디에 주차하지?</span>
         </div>
         {parkingLoading ? (
-          <div className="flex justify-center py-8"><LoadingSpinner size="md" /></div>
+          <div className="flex justify-center py-8">
+            <LoadingSpinner size="md" />
+          </div>
         ) : parkingData?.data ? (
-          <ParkingCard parking={parkingData.data} isRefreshing={parkingFetching} onRefresh={() => parkingRefetch()} />
+          <ParkingCard
+            parking={parkingData.data}
+            isRefreshing={parkingFetching}
+            onRefresh={() => parkingRefetch()}
+          />
         ) : null}
       </section>
 
       {/* ━━━ Step 2: 출국심사 ━━━ */}
       <section className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">Step 2</span>
+          <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2.5 py-1 rounded-full">
+            Step 2
+          </span>
           <h2 className="text-base font-bold text-gray-800">✈️ 출국심사</h2>
           <span className="text-xs text-gray-400">얼마나 붐빌까?</span>
         </div>
@@ -156,10 +171,15 @@ export default function DeparturePage() {
         <DateSelector dates={dates} selected={selectedDate} onSelect={setSelectedDate} />
 
         {isLoading && (
-          <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" />
+          </div>
         )}
         {isError && (
-          <ErrorMessage message={error?.message || '데이터를 불러오는데 실패했습니다'} onRetry={() => refetch()} />
+          <ErrorMessage
+            message={error?.message || '데이터를 불러오는데 실패했습니다'}
+            onRetry={() => refetch()}
+          />
         )}
 
         {forecast && computed && (
@@ -175,7 +195,8 @@ export default function DeparturePage() {
                     </span>
                     <p className="text-sm text-gray-600 mt-0.5">{computed.currentLevel.advice}</p>
                     <p className="text-xs text-gray-400 mt-1">
-                      현재 {currentHour}시 예상 출국 승객: {(computed.currentData?.departure.total ?? 0).toLocaleString()}명
+                      현재 {currentHour}시 예상 출국 승객:{' '}
+                      {(computed.currentData?.departure.total ?? 0).toLocaleString()}명
                     </p>
                   </div>
                 </div>
@@ -186,17 +207,27 @@ export default function DeparturePage() {
             {computed.bestHour && computed.bestHour.departure.total > 0 && (
               <div className="bg-white rounded-2xl shadow-md p-4 border border-green-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">💡</div>
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">
+                    💡
+                  </div>
                   <div>
                     <p className="text-sm font-bold text-gray-800">
                       {todaySelected ? '오늘 추천 시간' : '추천 시간'}:{' '}
                       <span className="text-green-600">{computed.bestHour.hour}시</span>
                     </p>
                     <p className="text-xs text-gray-500">
-                      {todaySelected ? '남은 시간 중 ' : ''}가장 한가한 시간대 · 예상 {computed.bestHour.departure.total.toLocaleString()}명
+                      {todaySelected ? '남은 시간 중 ' : ''}가장 한가한 시간대 · 예상{' '}
+                      {computed.bestHour.departure.total.toLocaleString()}명
                       {computed.currentData && todaySelected && (
                         <span className="text-green-600 ml-1">
-                          (지금보다 {Math.round((1 - computed.bestHour.departure.total / Math.max(computed.currentData.departure.total, 1)) * 100)}% 적음)
+                          (지금보다{' '}
+                          {Math.round(
+                            (1 -
+                              computed.bestHour.departure.total /
+                                Math.max(computed.currentData.departure.total, 1)) *
+                              100
+                          )}
+                          % 적음)
                         </span>
                       )}
                     </p>
@@ -209,7 +240,9 @@ export default function DeparturePage() {
             {todaySelected && computed.currentGates.filter((g) => g.value > 0).length > 1 && (
               <div className="bg-white rounded-2xl shadow-lg p-4">
                 <h3 className="text-base font-bold text-gray-800 mb-1">출국장별 지금 비교</h3>
-                <p className="text-xs text-gray-400 mb-3">숫자가 적은 곳이 상대적으로 여유롭습니다</p>
+                <p className="text-xs text-gray-400 mb-3">
+                  숫자가 적은 곳이 상대적으로 여유롭습니다
+                </p>
                 <div className="space-y-2">
                   {computed.currentGates
                     .filter((g) => g.value > 0)
@@ -220,17 +253,25 @@ export default function DeparturePage() {
                       const isLowest = idx === 0;
                       return (
                         <div key={gate.key} className="flex items-center gap-3">
-                          <span className={`text-sm font-medium w-14 ${isLowest ? 'text-green-600' : 'text-gray-600'}`}>{gate.label}</span>
+                          <span
+                            className={`text-sm font-medium w-14 ${isLowest ? 'text-green-600' : 'text-gray-600'}`}
+                          >
+                            {gate.label}
+                          </span>
                           <div className="flex-1 h-7 bg-gray-100 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all flex items-center justify-end pr-2 ${isLowest ? 'bg-green-400' : ratio > 0.8 ? 'bg-red-400' : 'bg-orange-300'}`}
                               style={{ width: `${Math.max(ratio * 100, 8)}%` }}
                             >
-                              <span className="text-xs font-bold text-white drop-shadow">{gate.value.toLocaleString()}명</span>
+                              <span className="text-xs font-bold text-white drop-shadow">
+                                {gate.value.toLocaleString()}명
+                              </span>
                             </div>
                           </div>
                           {isLowest && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">추천</span>
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                              추천
+                            </span>
                           )}
                         </div>
                       );
@@ -243,8 +284,12 @@ export default function DeparturePage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-red-400">
                 <p className="text-xs text-gray-400 mb-1">⚠️ 가장 붐비는 시간</p>
-                <p className="text-2xl font-bold text-gray-800">{forecast.summary.peakDepartureHour}시</p>
-                <p className="text-xs text-gray-500 mt-1">{forecast.summary.peakDepartureCount.toLocaleString()}명 예상</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {forecast.summary.peakDepartureHour}시
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {forecast.summary.peakDepartureCount.toLocaleString()}명 예상
+                </p>
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-400">
                 <p className="text-xs text-gray-400 mb-1">📊 하루 총 출국</p>
@@ -252,7 +297,9 @@ export default function DeparturePage() {
                   {(forecast.summary.totalDeparture / 10000).toFixed(1)}
                   <span className="text-base font-normal text-gray-400">만명</span>
                 </p>
-                <p className="text-xs text-gray-500 mt-1">{forecast.summary.totalDeparture.toLocaleString()}명</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {forecast.summary.totalDeparture.toLocaleString()}명
+                </p>
               </div>
             </div>
           </div>
@@ -263,7 +310,9 @@ export default function DeparturePage() {
       {forecast && computed && (
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2.5 py-1 rounded-full">Step 3</span>
+            <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              Step 3
+            </span>
             <h2 className="text-base font-bold text-gray-800">📊 상세 분석</h2>
           </div>
 
@@ -272,9 +321,15 @@ export default function DeparturePage() {
             <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-base font-bold text-gray-800 mb-1">시간대별 출국 승객</h3>
               <p className="text-xs text-gray-400 mb-3">
-                막대가 붉을수록 혼잡 · {todaySelected && <span className="text-blue-500 font-medium">파란 숫자 = 현재 시간</span>}
+                막대가 붉을수록 혼잡 ·{' '}
+                {todaySelected && (
+                  <span className="text-blue-500 font-medium">파란 숫자 = 현재 시간</span>
+                )}
               </p>
-              <HourlyBarChart data={computed.depByHour} currentHour={todaySelected ? currentHour : -1} />
+              <HourlyBarChart
+                data={computed.depByHour}
+                currentHour={todaySelected ? currentHour : -1}
+              />
             </div>
 
             {/* 히트맵 */}
@@ -294,7 +349,10 @@ export default function DeparturePage() {
                     <div
                       key={route.key}
                       className="rounded-xl p-3 border"
-                      style={{ borderColor: `${route.color}40`, backgroundColor: `${route.color}08` }}
+                      style={{
+                        borderColor: `${route.color}40`,
+                        backgroundColor: `${route.color}08`,
+                      }}
                     >
                       <div className="flex items-center gap-1.5 mb-1">
                         <span className="text-base">{route.emoji}</span>
@@ -312,7 +370,8 @@ export default function DeparturePage() {
           </div>
 
           <p className="text-xs text-gray-400 text-center py-4">
-            인천국제공항 제공 · 마지막 갱신: {new Date(forecast.lastUpdated).toLocaleString('ko-KR')}
+            인천국제공항 제공 · 마지막 갱신:{' '}
+            {new Date(forecast.lastUpdated).toLocaleString('ko-KR')}
           </p>
         </section>
       )}

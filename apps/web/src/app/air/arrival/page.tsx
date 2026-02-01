@@ -98,7 +98,10 @@ export default function ArrivalPage() {
   return (
     <main className="container mx-auto px-4 py-6 max-w-4xl">
       <header className="text-center mb-5">
-        <h1 className="text-2xl font-bold text-gray-800">🛬 입국 여정</h1>
+        <h1 className="text-2xl font-bold text-gray-800">
+          🛬
+          <a href="/">입국 여정</a>
+        </h1>
         <p className="text-sm text-gray-500">도착부터 공항 밖까지</p>
       </header>
 
@@ -115,7 +118,9 @@ export default function ArrivalPage() {
             }`}
           >
             <div className="text-lg">{t}</div>
-            <div className={`text-xs ${selectedTerminal === t ? 'text-blue-100' : 'text-gray-400'}`}>
+            <div
+              className={`text-xs ${selectedTerminal === t ? 'text-blue-100' : 'text-gray-400'}`}
+            >
               {TERMINAL_CONFIG[t].nameKo}
             </div>
           </button>
@@ -125,7 +130,9 @@ export default function ArrivalPage() {
       {/* ━━━ Step 1: 입국심사 ━━━ */}
       <section className="mb-6">
         <div className="flex items-center gap-2 mb-3">
-          <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">Step 1</span>
+          <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-full">
+            Step 1
+          </span>
           <h2 className="text-base font-bold text-gray-800">🛂 입국심사</h2>
           <span className="text-xs text-gray-400">얼마나 기다릴까?</span>
         </div>
@@ -133,10 +140,15 @@ export default function ArrivalPage() {
         <DateSelector dates={dates} selected={selectedDate} onSelect={setSelectedDate} />
 
         {isLoading && (
-          <div className="flex justify-center py-12"><LoadingSpinner size="lg" /></div>
+          <div className="flex justify-center py-12">
+            <LoadingSpinner size="lg" />
+          </div>
         )}
         {isError && (
-          <ErrorMessage message={error?.message || '데이터를 불러오는데 실패했습니다'} onRetry={() => refetch()} />
+          <ErrorMessage
+            message={error?.message || '데이터를 불러오는데 실패했습니다'}
+            onRetry={() => refetch()}
+          />
         )}
 
         {forecast && computed && (
@@ -152,7 +164,8 @@ export default function ArrivalPage() {
                     </span>
                     <p className="text-sm text-gray-600 mt-0.5">{computed.currentLevel.advice}</p>
                     <p className="text-xs text-gray-400 mt-1">
-                      현재 {currentHour}시 예상 입국 승객: {(computed.currentData?.arrival.total ?? 0).toLocaleString()}명
+                      현재 {currentHour}시 예상 입국 승객:{' '}
+                      {(computed.currentData?.arrival.total ?? 0).toLocaleString()}명
                     </p>
                   </div>
                 </div>
@@ -163,14 +176,17 @@ export default function ArrivalPage() {
             {computed.bestHour && computed.bestHour.arrival.total > 0 && (
               <div className="bg-white rounded-2xl shadow-md p-4 border border-green-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">💡</div>
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-xl">
+                    💡
+                  </div>
                   <div>
                     <p className="text-sm font-bold text-gray-800">
                       {todaySelected ? '오늘 추천 시간' : '추천 시간'}:{' '}
                       <span className="text-green-600">{computed.bestHour.hour}시</span>
                     </p>
                     <p className="text-xs text-gray-500">
-                      {todaySelected ? '남은 시간 중 ' : ''}가장 한가한 시간대 · 예상 {computed.bestHour.arrival.total.toLocaleString()}명
+                      {todaySelected ? '남은 시간 중 ' : ''}가장 한가한 시간대 · 예상{' '}
+                      {computed.bestHour.arrival.total.toLocaleString()}명
                     </p>
                   </div>
                 </div>
@@ -181,7 +197,9 @@ export default function ArrivalPage() {
             {todaySelected && computed.currentGates.filter((g) => g.value > 0).length > 1 && (
               <div className="bg-white rounded-2xl shadow-lg p-4">
                 <h3 className="text-base font-bold text-gray-800 mb-1">입국장별 지금 비교</h3>
-                <p className="text-xs text-gray-400 mb-3">숫자가 적은 입국장이 상대적으로 여유롭습니다</p>
+                <p className="text-xs text-gray-400 mb-3">
+                  숫자가 적은 입국장이 상대적으로 여유롭습니다
+                </p>
                 <div className="space-y-2">
                   {computed.currentGates
                     .filter((g) => g.value > 0)
@@ -192,17 +210,25 @@ export default function ArrivalPage() {
                       const isLowest = idx === 0;
                       return (
                         <div key={gate.key} className="flex items-center gap-3">
-                          <span className={`text-sm font-medium w-14 ${isLowest ? 'text-green-600' : 'text-gray-600'}`}>{gate.label}</span>
+                          <span
+                            className={`text-sm font-medium w-14 ${isLowest ? 'text-green-600' : 'text-gray-600'}`}
+                          >
+                            {gate.label}
+                          </span>
                           <div className="flex-1 h-7 bg-gray-100 rounded-full overflow-hidden">
                             <div
                               className={`h-full rounded-full transition-all flex items-center justify-end pr-2 ${isLowest ? 'bg-green-400' : ratio > 0.8 ? 'bg-red-400' : 'bg-orange-300'}`}
                               style={{ width: `${Math.max(ratio * 100, 8)}%` }}
                             >
-                              <span className="text-xs font-bold text-white drop-shadow">{gate.value.toLocaleString()}명</span>
+                              <span className="text-xs font-bold text-white drop-shadow">
+                                {gate.value.toLocaleString()}명
+                              </span>
                             </div>
                           </div>
                           {isLowest && (
-                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">추천</span>
+                            <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
+                              추천
+                            </span>
                           )}
                         </div>
                       );
@@ -215,8 +241,12 @@ export default function ArrivalPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-red-400">
                 <p className="text-xs text-gray-400 mb-1">⚠️ 가장 붐비는 시간</p>
-                <p className="text-2xl font-bold text-gray-800">{forecast.summary.peakArrivalHour}시</p>
-                <p className="text-xs text-gray-500 mt-1">{forecast.summary.peakArrivalCount.toLocaleString()}명 예상</p>
+                <p className="text-2xl font-bold text-gray-800">
+                  {forecast.summary.peakArrivalHour}시
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {forecast.summary.peakArrivalCount.toLocaleString()}명 예상
+                </p>
               </div>
               <div className="bg-white rounded-xl shadow-md p-4 border-l-4 border-blue-400">
                 <p className="text-xs text-gray-400 mb-1">📊 하루 총 입국</p>
@@ -224,7 +254,9 @@ export default function ArrivalPage() {
                   {(forecast.summary.totalArrival / 10000).toFixed(1)}
                   <span className="text-base font-normal text-gray-400">만명</span>
                 </p>
-                <p className="text-xs text-gray-500 mt-1">{forecast.summary.totalArrival.toLocaleString()}명</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {forecast.summary.totalArrival.toLocaleString()}명
+                </p>
               </div>
             </div>
           </div>
@@ -235,7 +267,9 @@ export default function ArrivalPage() {
       {todaySelected && parking && (
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">Step 2</span>
+            <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              Step 2
+            </span>
             <h2 className="text-base font-bold text-gray-800">🅿️ 마중 주차</h2>
             <span className="text-xs text-gray-400">마중 나가시는 분</span>
           </div>
@@ -262,7 +296,9 @@ export default function ArrivalPage() {
       {forecast && computed && (
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-3">
-            <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2.5 py-1 rounded-full">Step 3</span>
+            <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2.5 py-1 rounded-full">
+              Step 3
+            </span>
             <h2 className="text-base font-bold text-gray-800">📊 상세 분석</h2>
           </div>
 
@@ -270,9 +306,15 @@ export default function ArrivalPage() {
             <div className="bg-white rounded-2xl shadow-lg p-4">
               <h3 className="text-base font-bold text-gray-800 mb-1">시간대별 입국 승객</h3>
               <p className="text-xs text-gray-400 mb-3">
-                막대가 붉을수록 혼잡 · {todaySelected && <span className="text-blue-500 font-medium">파란 숫자 = 현재 시간</span>}
+                막대가 붉을수록 혼잡 ·{' '}
+                {todaySelected && (
+                  <span className="text-blue-500 font-medium">파란 숫자 = 현재 시간</span>
+                )}
               </p>
-              <HourlyBarChart data={computed.arrByHour} currentHour={todaySelected ? currentHour : -1} />
+              <HourlyBarChart
+                data={computed.arrByHour}
+                currentHour={todaySelected ? currentHour : -1}
+              />
             </div>
 
             <CongestionHeatmap
@@ -283,7 +325,8 @@ export default function ArrivalPage() {
           </div>
 
           <p className="text-xs text-gray-400 text-center py-4">
-            인천국제공항 제공 · 마지막 갱신: {new Date(forecast.lastUpdated).toLocaleString('ko-KR')}
+            인천국제공항 제공 · 마지막 갱신:{' '}
+            {new Date(forecast.lastUpdated).toLocaleString('ko-KR')}
           </p>
         </section>
       )}
