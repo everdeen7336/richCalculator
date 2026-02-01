@@ -75,7 +75,9 @@ export default function AirHubPage() {
     <main className="container mx-auto px-4 py-8 max-w-4xl">
       {/* 헤더 */}
       <header className="text-center mb-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">인천공항 여행 가이드</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-1">
+          <a href="/">인천공항 여행 가이드</a>
+        </h1>
         <p className="text-sm text-gray-500">지금 어떤 상황인가요?</p>
       </header>
 
