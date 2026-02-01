@@ -350,21 +350,9 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // 과거 날짜 체크 — 대부분의 무료 API는 과거 운항 정보를 제공하지 않음
-  if (dateParam) {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const reqDate = new Date(dateParam + 'T00:00:00');
-    if (reqDate.getTime() < today.getTime()) {
-      return NextResponse.json(
-        {
-          error: `${dateParam}은 과거 날짜입니다.`,
-          suggestion: '무료 항공편 API는 과거 운항 정보를 제공하지 않습니다. 오늘 이후 날짜를 입력해주세요.',
-        },
-        { status: 400 }
-      );
-    }
-  }
+  // 과거 날짜는 클라이언트에서 수동 입력으로 처리하므로 API까지 오지 않지만,
+  // 혹시 과거 날짜로 요청이 오면 API 조회를 시도하되, 결과가 없을 수 있음을 안내
+
 
   const cacheKey = `${parsed.iata}_${dateParam || 'today'}`;
 

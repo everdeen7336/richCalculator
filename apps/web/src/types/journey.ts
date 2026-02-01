@@ -92,7 +92,7 @@ export interface FlightInfo {
   };
   status: FlightStatus;
   durationMinutes: number;
-  source: 'api' | 'simulated';
+  source: 'api' | 'simulated' | 'manual';
 }
 
 export type FlightStatus =
