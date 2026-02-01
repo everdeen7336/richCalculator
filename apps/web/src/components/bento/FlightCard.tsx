@@ -182,17 +182,25 @@ export default function FlightCard() {
 
         <form onSubmit={(e) => { e.preventDefault(); isPastDate ? registerManualFlight() : searchFlight(); }} className="space-y-3">
           {/* 1. 출발 날짜 (먼저 선택) */}
-          <input
-            type="date"
-            value={depDate}
-            onChange={(e) => setDepDate(e.target.value)}
-            className="
-              w-full bg-transparent text-xs text-[var(--text-primary)]
-              border-b border-[var(--border)] pb-1.5
-              focus:outline-none focus:border-[var(--accent)]
-              transition-colors duration-300
-            "
-          />
+          <div className="relative">
+            {!depDate && (
+              <span className="absolute left-0 top-0 text-xs text-[var(--text-muted)] pointer-events-none">
+                출발 날짜 선택
+              </span>
+            )}
+            <input
+              type="date"
+              value={depDate}
+              onChange={(e) => setDepDate(e.target.value)}
+              className={`
+                w-full bg-transparent text-xs text-[var(--text-primary)]
+                border-b border-[var(--border)] pb-1.5
+                focus:outline-none focus:border-[var(--accent)]
+                transition-colors duration-300
+                ${!depDate ? 'text-transparent' : ''}
+              `}
+            />
+          </div>
 
           {isPastDate && (
             <p className="text-[10px] text-amber-500">

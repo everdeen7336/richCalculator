@@ -15,7 +15,7 @@ export default function PhaseIndicator() {
   const currentIndex = PHASES.findIndex((p) => p.key === phase);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-0.5 flex-shrink-0">
       {PHASES.map((p, i) => {
         const isActive = p.key === phase;
         const isPast = i < currentIndex;
@@ -25,7 +25,7 @@ export default function PhaseIndicator() {
             key={p.key}
             onClick={() => setPhase(p.key)}
             className={`
-              text-[11px] px-3 py-1.5 rounded-full transition-all duration-300
+              text-[10px] sm:text-[11px] px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-300 whitespace-nowrap
               ${isActive
                 ? 'bg-[var(--text-primary)] text-white font-medium'
                 : isPast

@@ -177,11 +177,38 @@ function getSimulatedWeather(coord: CityCoord): WeatherResponse {
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const cityQuery = searchParams.get('city') || '';
+  const latParam = searchParams.get('lat');
+  const lonParam = searchParams.get('lon');
 
-  // 도시 좌표 결정
-  const coord = cityQuery ? findCity(cityQuery) : CITY_COORDS['인천공항'];
+  // 도시 좌표 결정: lat/lon 직접 지정 > city 파라미터 > 기본(인천공항)
+  let coord: CityCoord | null = null;
+
+  if (latParam && lonParam) {
+    const lat = parseFloat(latParam);
+    const lon = parseFloat(lonParam);
+    if (!isNaN(lat) && !isNaN(lon)) {
+      // 좌표에서 가장 가까운 도시 찾기
+      let nearest: { key: string; dist: number; city: CityCoord } | null = null;
+      for (const [key, c] of Object.entries(CITY_COORDS)) {
+        const dist = Math.sqrt((c.lat - lat) ** 2 + (c.lon - lon) ** 2);
+        if (!nearest || dist < nearest.dist) {
+          nearest = { key, dist, city: c };
+        }
+      }
+      // 가까운 도시가 2도(~220km) 이내면 사용, 아니면 좌표 직접 사용
+      if (nearest && nearest.dist < 2) {
+        coord = nearest.city;
+      } else {
+        coord = { lat, lon, nameKo: '현재 위치', nameEn: 'Current Location', timezone: 9 };
+      }
+    }
+  }
+
   if (!coord) {
-    // 알 수 없는 도시 → 인천공항 폴백
+    coord = cityQuery ? findCity(cityQuery) : CITY_COORDS['인천공항'];
+  }
+
+  if (!coord) {
     const fallback = CITY_COORDS['인천공항'];
     const data = getSimulatedWeather(fallback);
     return NextResponse.json(data);

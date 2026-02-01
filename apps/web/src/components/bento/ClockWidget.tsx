@@ -73,7 +73,7 @@ interface ClockInfo {
 
 export default function ClockWidget() {
   const [now, setNow] = useState(new Date());
-  const { destination, departureFlight } = useJourneyStore();
+  const { destination, departureFlight, returnFlight } = useJourneyStore();
 
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
@@ -90,32 +90,45 @@ export default function ClockWidget() {
   clocks.push({ label: '내 위치', tz: localTz, color: 'white' });
   usedTzs.add(localTz);
 
-  // 2) 출발지 (비행편 있을 때, 로컬과 다르면)
+  // 2) 출발지 (출국편 or 귀국편 출발지, 로컬과 다르면)
+  const depFlight = departureFlight || returnFlight;
   const depTz = resolveTz(
-    departureFlight?.departure?.city,
-    departureFlight?.departure?.airport,
+    depFlight?.departure?.city,
+    depFlight?.departure?.airport,
   );
   if (depTz && !usedTzs.has(depTz)) {
     clocks.push({
-      label: departureFlight?.departure?.city || departureFlight?.departure?.airport || '출발지',
+      label: depFlight?.departure?.city || depFlight?.departure?.airport || '출발지',
       tz: depTz,
       color: 'amber',
     });
     usedTzs.add(depTz);
   }
 
-  // 3) 도착지 (비행편 도착지 or 검색 destination)
-  const arrTz = resolveTz(
-    departureFlight?.arrival?.city || destination,
-    departureFlight?.arrival?.airport,
-  );
+  // 3) 도착지 (출국편 도착지 → 귀국편 도착지 → destination 순)
+  const arrCity = departureFlight?.arrival?.city || returnFlight?.arrival?.city || destination;
+  const arrAirport = departureFlight?.arrival?.airport || returnFlight?.arrival?.airport;
+  const arrTz = resolveTz(arrCity, arrAirport);
   if (arrTz && !usedTzs.has(arrTz)) {
     clocks.push({
-      label: departureFlight?.arrival?.city || destination || departureFlight?.arrival?.airport || '도착지',
+      label: arrCity || arrAirport || '도착지',
       tz: arrTz,
       color: 'accent',
     });
     usedTzs.add(arrTz);
+  }
+
+  // 4) 귀국편에 다른 도시가 있으면 추가 (출국편+귀국편 동시 등록 시)
+  if (departureFlight && returnFlight) {
+    const retDepTz = resolveTz(returnFlight.departure?.city, returnFlight.departure?.airport);
+    if (retDepTz && !usedTzs.has(retDepTz)) {
+      clocks.push({
+        label: returnFlight.departure?.city || returnFlight.departure?.airport || '귀국 출발지',
+        tz: retDepTz,
+        color: 'accent',
+      });
+      usedTzs.add(retDepTz);
+    }
   }
 
   const colorMap = {

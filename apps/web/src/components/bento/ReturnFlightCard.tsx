@@ -174,17 +174,25 @@ export default function ReturnFlightCard() {
 
         <form onSubmit={(e) => { e.preventDefault(); isPastDate ? registerManualFlight() : searchFlight(); }} className="space-y-3">
           {/* 1. 날짜 먼저 */}
-          <input
-            type="date"
-            value={retDate}
-            onChange={(e) => setRetDate(e.target.value)}
-            className="
-              w-full bg-transparent text-xs text-[var(--text-primary)]
-              border-b border-[var(--border)] pb-1.5
-              focus:outline-none focus:border-[var(--accent)]
-              transition-colors duration-300
-            "
-          />
+          <div className="relative">
+            {!retDate && (
+              <span className="absolute left-0 top-0 text-xs text-[var(--text-muted)] pointer-events-none">
+                귀국 날짜 선택
+              </span>
+            )}
+            <input
+              type="date"
+              value={retDate}
+              onChange={(e) => setRetDate(e.target.value)}
+              className={`
+                w-full bg-transparent text-xs text-[var(--text-primary)]
+                border-b border-[var(--border)] pb-1.5
+                focus:outline-none focus:border-[var(--accent)]
+                transition-colors duration-300
+                ${!retDate ? 'text-transparent' : ''}
+              `}
+            />
+          </div>
 
           {isPastDate && (
             <p className="text-[10px] text-amber-500">
