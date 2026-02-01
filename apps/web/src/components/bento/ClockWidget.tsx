@@ -132,18 +132,18 @@ export default function ClockWidget() {
   }
 
   const colorMap = {
-    white: { time: '!text-white', label: 'text-[#8A8578]', date: 'text-[#8A8578]' },
-    amber: { time: '!text-amber-300', label: 'text-amber-400/70', date: 'text-amber-400/50' },
-    accent: { time: '!text-[var(--accent)]', label: 'text-[var(--accent)]/70', date: 'text-[var(--accent)]/50' },
+    white: { time: '!text-[#F5F4F1]', label: 'text-[#8A857A]', date: 'text-[#8A857A]' },
+    amber: { time: '!text-[#D4A574]', label: 'text-[#C49A6C]/70', date: 'text-[#C49A6C]/50' },
+    accent: { time: '!text-[#8BB5A5]', label: 'text-[#8BB5A5]/70', date: 'text-[#8BB5A5]/50' },
   };
 
   // 단일 시계
   if (clocks.length === 1) {
     return (
       <BentoCard variant="dark">
-        <p className="bento-label !text-[#8A8578] mb-2">현재 시간</p>
-        <p className="text-3xl bento-value !text-white">{fmtTime(now, localTz)}</p>
-        <p className="text-xs text-[#8A8578] mt-1.5">{fmtDate(now, localTz)}</p>
+        <p className="bento-label !text-[#8A857A] mb-2">현재 시간</p>
+        <p className="text-3xl bento-value !text-[#F5F4F1]">{fmtTime(now, localTz)}</p>
+        <p className="text-xs text-[#8A857A] mt-1.5">{fmtDate(now, localTz)}</p>
       </BentoCard>
     );
   }
@@ -172,7 +172,7 @@ export default function ClockWidget() {
           );
         })}
       </div>
-      <p className="text-[10px] text-[#8A8578] mt-2 text-center">{fmtDate(now, localTz)}</p>
+      <p className="text-[10px] text-[#8A857A] mt-2 text-center">{fmtDate(now, localTz)}</p>
     </BentoCard>
   );
 }

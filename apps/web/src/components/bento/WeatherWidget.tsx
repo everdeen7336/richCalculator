@@ -190,7 +190,7 @@ export default function WeatherWidget() {
   const roleLabel = { local: '📍 현재', departure: '🛫 출발지', arrival: '🛬 도착지' };
   const roleColor = {
     local: 'text-[var(--text-muted)]',
-    departure: 'text-amber-500',
+    departure: 'text-[#C49A6C]',
     arrival: 'text-[var(--accent)]',
   };
 

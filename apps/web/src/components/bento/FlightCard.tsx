@@ -41,13 +41,13 @@ const AIRPORT_CITY: Record<string, string> = {
 /** 상태별 스타일 */
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   scheduled: { bg: 'bg-[var(--border-light)]', text: 'text-[var(--text-secondary)]' },
-  boarding:  { bg: 'bg-amber-50', text: 'text-amber-700' },
-  departed:  { bg: 'bg-blue-50', text: 'text-blue-700' },
-  in_air:    { bg: 'bg-blue-50', text: 'text-blue-700' },
-  landed:    { bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  arrived:   { bg: 'bg-emerald-50', text: 'text-emerald-700' },
-  delayed:   { bg: 'bg-red-50', text: 'text-red-600' },
-  cancelled: { bg: 'bg-red-50', text: 'text-red-600' },
+  boarding:  { bg: 'bg-[#FDF6EE]', text: 'text-[#B8863A]' },
+  departed:  { bg: 'bg-[#EEF4FB]', text: 'text-[#4A7BA7]' },
+  in_air:    { bg: 'bg-[#EEF4FB]', text: 'text-[#4A7BA7]' },
+  landed:    { bg: 'bg-[#EFF7F3]', text: 'text-[#4A8A6E]' },
+  arrived:   { bg: 'bg-[#EFF7F3]', text: 'text-[#4A8A6E]' },
+  delayed:   { bg: 'bg-[#FDF1F0]', text: 'text-[#C4564A]' },
+  cancelled: { bg: 'bg-[#FDF1F0]', text: 'text-[#C4564A]' },
 };
 
 function formatTime(iso: string): string {
@@ -203,7 +203,7 @@ export default function FlightCard() {
           </div>
 
           {isPastDate && (
-            <p className="text-[10px] text-amber-500">
+            <p className="text-[10px] text-[#B8863A]">
               과거 날짜는 API 조회가 불가하여 수동 입력합니다
             </p>
           )}
@@ -310,7 +310,7 @@ export default function FlightCard() {
 
         {error && (
           <div className="mt-2">
-            <p className="text-[11px] text-red-400">{error}</p>
+            <p className="text-[11px] text-[#C4564A]">{error}</p>
             {suggestion && <p className="text-[10px] text-[var(--text-muted)] mt-1">{suggestion}</p>}
           </div>
         )}
@@ -329,7 +329,7 @@ export default function FlightCard() {
         <p className="bento-label">항공편</p>
         <button
           onClick={clearFlights}
-          className="text-[10px] text-[var(--text-muted)] hover:text-red-400 transition-colors"
+          className="text-[10px] text-[var(--text-muted)] hover:text-[#C4564A] transition-colors"
         >
           초기화
         </button>
@@ -391,7 +391,7 @@ export default function FlightCard() {
         </div>
       </div>
 
-      {error && <p className="text-[11px] text-red-400 mt-2">{error}</p>}
+      {error && <p className="text-[11px] text-[#C4564A] mt-2">{error}</p>}
     </BentoCard>
   );
 }

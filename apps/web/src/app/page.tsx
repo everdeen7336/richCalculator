@@ -13,6 +13,7 @@ import SoftNudge from '@/components/journey/SoftNudge';
 import ContextCard from '@/components/journey/ContextCard';
 import PhaseIndicator from '@/components/journey/PhaseIndicator';
 import RecordingTimeline from '@/components/journey/RecordingTimeline';
+import GlobeHero from '@/components/3d/GlobeHero';
 import { useJourneyStore } from '@/stores/journey.store';
 
 export default function Dashboard() {
@@ -37,8 +38,13 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* 3D Globe Hero */}
+      <div className="max-w-3xl mx-auto">
+        <GlobeHero departureFlight={departureFlight} returnFlight={returnFlight} />
+      </div>
+
       {/* Phase-Adaptive Bento Grid */}
-      <section className="px-5 pt-5 pb-16 max-w-3xl mx-auto">
+      <section className="px-5 pt-0 pb-16 max-w-3xl mx-auto">
 
         {/* ──────────── PREPARING ──────────── */}
         {/* 여정 흐름: 항공편 등록 → 시간/날씨 확인 → 출입국 링크 → 검색/공항 → 예산/일정 */}

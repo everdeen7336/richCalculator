@@ -27,10 +27,10 @@ export default function PhaseIndicator() {
             className={`
               text-[10px] sm:text-[11px] px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-300 whitespace-nowrap
               ${isActive
-                ? 'bg-[var(--text-primary)] text-white font-medium'
+                ? 'bg-[var(--text-primary)] text-[#F7F6F3] font-medium shadow-sm'
                 : isPast
-                  ? 'bg-[var(--accent)]/10 text-[var(--accent)]'
-                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
+                  ? 'bg-[var(--accent)]/8 text-[var(--accent)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--border-light)]'
               }
             `}
           >

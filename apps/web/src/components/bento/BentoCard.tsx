@@ -11,7 +11,7 @@ interface BentoCardProps {
 const variantStyles: Record<string, string> = {
   default: 'bento-card',
   accent: 'rounded-2xl p-5 transition-all duration-300 bg-[var(--bg-card)] border border-[var(--accent)]/20 hover:border-[var(--accent)]/40',
-  dark: 'rounded-2xl p-5 bg-[#2C2C2C] text-white transition-all duration-300 hover:bg-[#343434]',
+  dark: 'rounded-2xl p-5 bg-[#262422] text-white transition-all duration-300 hover:bg-[#2E2C29]',
 };
 
 export default function BentoCard({

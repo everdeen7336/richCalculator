@@ -3,20 +3,20 @@
 @tailwind utilities;
 
 :root {
-  /* Matte Beige Palette */
-  --bg-primary: #F5F5DC;
-  --bg-card: #FAFAF5;
-  --bg-card-hover: #F0EDE8;
-  --text-primary: #2C2C2C;
-  --text-secondary: #8A8578;
-  --text-muted: #B8B2A8;
-  --accent: #7C9A8E;
-  --accent-light: #A8C5B8;
-  --border: #E8E4DF;
-  --border-light: #F0EDE8;
+  /* Refined Warm Neutral Palette */
+  --bg-primary: #F7F6F3;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FBFAF8;
+  --text-primary: #1A1A1A;
+  --text-secondary: #6B6560;
+  --text-muted: #A8A29E;
+  --accent: #5B8A7A;
+  --accent-light: #8BB5A5;
+  --border: #E7E5E2;
+  --border-light: #F0EFEC;
 
-  --foreground-rgb: 44, 44, 44;
-  --background-rgb: 245, 245, 220;
+  --foreground-rgb: 26, 26, 26;
+  --background-rgb: 247, 246, 243;
 }
 
 body {
@@ -73,10 +73,12 @@ body {
     @apply rounded-2xl p-5 transition-all duration-300;
     background: var(--bg-card);
     border: 1px solid var(--border-light);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   }
   .bento-card:hover {
     background: var(--bg-card-hover);
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.03);
+    border-color: var(--border);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
   }
 
   .bento-label {
