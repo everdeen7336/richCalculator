@@ -9,7 +9,7 @@ import type {
   VisitRecord,
   FlightInfo,
 } from '@/types/journey';
-import { DEFAULT_CHECKLIST, generateFlightChecklist, generateArrivalChecklist } from '@/types/journey';
+import { DEFAULT_CHECKLIST, PREPARATION_CHECKLIST, generateFlightChecklist, generateArrivalChecklist, migratePhase } from '@/types/journey';
 
 interface JourneyStoreState {
   // ── State ──
@@ -89,11 +89,11 @@ function syncBudgetWithExpenses(
 export const useJourneyStore = create<JourneyStoreState>()(
   persist(
     (set) => ({
-      phase: 'preparing',
+      phase: 'planning',
       items: [],
       budget: DEFAULT_BUDGET,
       expenses: [],
-      checklist: DEFAULT_CHECKLIST,
+      checklist: PREPARATION_CHECKLIST,
       visitRecords: [],
       totalBudget: 1100000,
       departureDate: '',
@@ -171,7 +171,7 @@ export const useJourneyStore = create<JourneyStoreState>()(
         set((s) => ({ checklist: [...s.checklist, item] })),
       removeChecklistItem: (id) =>
         set((s) => ({ checklist: s.checklist.filter((c) => c.id !== id) })),
-      resetChecklist: () => set({ checklist: DEFAULT_CHECKLIST }),
+      resetChecklist: () => set({ checklist: PREPARATION_CHECKLIST }),
 
       // ── Visit Records ──
       addVisitRecord: (record) =>
@@ -186,28 +186,35 @@ export const useJourneyStore = create<JourneyStoreState>()(
       // ── Flights ──
       setDepartureFlight: (flight) =>
         set((s) => {
-          // 비행 출발 시간으로 체크리스트 자동 생성
-          const checklist = generateFlightChecklist(flight.departure.scheduledTime);
-          // 목적지 자동 설정
+          // 기존 준비 체크리스트 유지 + 출국 수속 체크리스트 추가
+          const prepItems = s.checklist.filter((c) => c.category === 'preparation' || !c.category);
+          const depItems = generateFlightChecklist(flight.departure.scheduledTime);
+          const arrItems = s.checklist.filter((c) => c.category === 'arrival');
+          const checklist = [...prepItems, ...depItems, ...arrItems];
           const destination = flight.arrival.city || s.destination;
           const departureDate = flight.departure.scheduledTime.split('T')[0] || s.departureDate;
           return { departureFlight: flight, checklist, destination, departureDate };
         }),
       setReturnFlight: (flight) =>
-        set({ returnFlight: flight }),
+        set((s) => {
+          // 기존 체크리스트에서 입국 항목 교체
+          const nonArrival = s.checklist.filter((c) => c.category !== 'arrival');
+          const arrItems = generateArrivalChecklist(flight.arrival.scheduledTime);
+          return { returnFlight: flight, checklist: [...nonArrival, ...arrItems] };
+        }),
       clearReturnFlight: () =>
         set({ returnFlight: null }),
       clearFlights: () =>
-        set({ departureFlight: null, returnFlight: null, checklist: DEFAULT_CHECKLIST }),
+        set({ departureFlight: null, returnFlight: null, checklist: PREPARATION_CHECKLIST }),
 
       // ── Global ──
       reset: () =>
         set({
-          phase: 'preparing',
+          phase: 'planning',
           items: [],
           budget: DEFAULT_BUDGET,
           expenses: [],
-          checklist: DEFAULT_CHECKLIST,
+          checklist: PREPARATION_CHECKLIST,
           visitRecords: [],
           totalBudget: 1100000,
           departureDate: '',
@@ -216,6 +223,18 @@ export const useJourneyStore = create<JourneyStoreState>()(
           returnFlight: null,
         }),
     }),
-    { name: 'journey-storage' }
+    {
+      name: 'journey-storage',
+      version: 1,
+      migrate: (persisted: unknown, version: number) => {
+        const state = persisted as Record<string, unknown>;
+        if (version === 0 || !version) {
+          if (state.phase && typeof state.phase === 'string') {
+            state.phase = migratePhase(state.phase);
+          }
+        }
+        return state as unknown as JourneyStoreState;
+      },
+    }
   )
 );

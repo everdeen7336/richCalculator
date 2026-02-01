@@ -1,7 +1,17 @@
 /**
  * 여정 단계 (User Journey Phase)
  */
-export type JourneyPhase = 'preparing' | 'coordinating' | 'onsite' | 'recording';
+export type JourneyPhase = 'planning' | 'traveling';
+
+/** 이전 4-phase → 2-phase 마이그레이션 */
+export function migratePhase(old: string): JourneyPhase {
+  if (old === 'traveling') return 'traveling';
+  if (old === 'coordinating' || old === 'onsite' || old === 'recording') return 'traveling';
+  return 'planning';
+}
+
+/** 체크리스트 카테고리 */
+export type ChecklistCategory = 'preparation' | 'departure' | 'arrival';
 
 /**
  * 장소 정보
@@ -57,6 +67,7 @@ export interface ChecklistItem {
   time: string;
   label: string;
   done: boolean;
+  category?: ChecklistCategory;
 }
 
 /**
@@ -129,6 +140,7 @@ export function generateFlightChecklist(departureTime: string): ChecklistItem[] 
     time: fmt(new Date(dep.getTime() + s.m * 60000)),
     label: s.label,
     done: false,
+    category: 'departure' as ChecklistCategory,
   }));
 }
 
@@ -148,6 +160,7 @@ export function generateArrivalChecklist(arrivalTime: string): ChecklistItem[] {
     time: fmt(new Date(arr.getTime() + s.m * 60000)),
     label: s.label,
     done: false,
+    category: 'arrival' as ChecklistCategory,
   }));
 }
 
@@ -184,14 +197,25 @@ export function getContextCardType(hour: number): ContextCardType {
   return 'moving';
 }
 
-/**
- * 기본 출국 체크리스트
- */
-export const DEFAULT_CHECKLIST: ChecklistItem[] = [
-  { id: 'c1', time: '3시간 전', label: '공항 도착', done: false },
-  { id: 'c2', time: '2.5시간 전', label: '체크인 & 수화물', done: false },
-  { id: 'c3', time: '2시간 전', label: '보안 검색', done: false },
-  { id: 'c4', time: '1.5시간 전', label: '출국 심사', done: false },
-  { id: 'c5', time: '1시간 전', label: '면세 쇼핑', done: false },
-  { id: 'c6', time: '30분 전', label: '탑승구 이동', done: false },
+/** 여행 준비 체크리스트 (planning phase) */
+export const PREPARATION_CHECKLIST: ChecklistItem[] = [
+  { id: 'p1', time: '', label: '여권 유효기간 확인', done: false, category: 'preparation' },
+  { id: 'p2', time: '', label: '항공편 예약', done: false, category: 'preparation' },
+  { id: 'p3', time: '', label: '숙소 예약', done: false, category: 'preparation' },
+  { id: 'p4', time: '', label: '여행자 보험 가입', done: false, category: 'preparation' },
+  { id: 'p5', time: '', label: '환전 / 카드 준비', done: false, category: 'preparation' },
+  { id: 'p6', time: '', label: '짐 싸기', done: false, category: 'preparation' },
 ];
+
+/** 공항 수속 체크리스트 (traveling phase — 출국) */
+export const DEPARTURE_CHECKLIST: ChecklistItem[] = [
+  { id: 'c1', time: '3시간 전', label: '공항 도착', done: false, category: 'departure' },
+  { id: 'c2', time: '2.5시간 전', label: '체크인 & 수화물', done: false, category: 'departure' },
+  { id: 'c3', time: '2시간 전', label: '보안 검색', done: false, category: 'departure' },
+  { id: 'c4', time: '1.5시간 전', label: '출국 심사', done: false, category: 'departure' },
+  { id: 'c5', time: '1시간 전', label: '면세 쇼핑', done: false, category: 'departure' },
+  { id: 'c6', time: '30분 전', label: '탑승구 이동', done: false, category: 'departure' },
+];
+
+/** 하위호환용 기본 체크리스트 */
+export const DEFAULT_CHECKLIST: ChecklistItem[] = PREPARATION_CHECKLIST;

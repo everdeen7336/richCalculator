@@ -392,6 +392,17 @@ export default function FlightCard() {
       </div>
 
       {error && <p className="text-[11px] text-[#C4564A] mt-2">{error}</p>}
+
+      {/* 프리미엄 훅 */}
+      <div className="mt-3 pt-3 border-t border-[var(--border-light)]">
+        <button className="
+          w-full py-2 rounded-xl text-[10px] font-medium
+          bg-[var(--accent)]/8 text-[var(--accent)]
+          hover:bg-[var(--accent)]/15 transition-all duration-200
+        ">
+          지연/게이트 변경 실시간 알림 →
+        </button>
+      </div>
     </BentoCard>
   );
 }

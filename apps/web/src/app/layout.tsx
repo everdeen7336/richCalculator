@@ -3,14 +3,23 @@ import { Providers } from './providers';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '여행 대시보드',
-  description: '들여다보는 것만으로 마음이 정리되는 여행 도구',
+  title: '토키보 — 여행 대시보드',
+  description: '들여다보는 것만으로 마음이 정리되는 여행 대시보드. 항공편, 일정, 예산을 한 곳에서.',
+  manifest: '/manifest.json',
+  themeColor: '#5B8A7A',
+  openGraph: {
+    title: '토키보 — 여행 대시보드',
+    description: '항공편 등록부터 일정 관리, 경비 추적까지. 여행의 모든 것을 한 곳에서.',
+    type: 'website',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
       <head>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-icon-180x180.png" />
         <link rel="icon" type="image/png" sizes="192x192" href="/android-icon-192x192.png" />

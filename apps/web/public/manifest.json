@@ -1,0 +1,23 @@
+{
+  "name": "토키보 여행 대시보드",
+  "short_name": "토키보",
+  "description": "들여다보는 것만으로 마음이 정리되는 여행 대시보드",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F6F3",
+  "theme_color": "#5B8A7A",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/android-icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-icon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
