@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import BentoCard from './BentoCard';
 import { useJourneyStore } from '@/stores/journey.store';
+import { GA } from '@/lib/analytics';
 import type { FlightInfo } from '@/types/journey';
 import { FLIGHT_STATUS_LABEL } from '@/types/journey';
 
@@ -89,7 +90,7 @@ function getCountdown(iso: string): string | null {
 }
 
 export default function FlightCard() {
-  const { departureFlight, setDepartureFlight, clearDepartureFlight, clearFlights } = useJourneyStore();
+  const { departureFlight, setDepartureFlight, clearDepartureFlight, clearFlights, setDepartureDate, setDestination } = useJourneyStore();
 
   const [depInput, setDepInput] = useState('');
   const [depDate, setDepDate] = useState('');
@@ -160,10 +161,13 @@ export default function FlightCard() {
       source: 'manual',
     };
     setDepartureFlight(flight);
+    if (flight.arrival.city) setDestination(flight.arrival.city);
+    if (depDate) setDepartureDate(depDate);
+    GA.flightRegistered('manual', flight.flightNumber);
     setDepInput('');
     setEditBackup(null);
     setForceManual(false);
-  }, [depInput, depDate, manualDepAirport, manualDepTime, manualArrAirport, manualArrTime, setDepartureFlight]);
+  }, [depInput, depDate, manualDepAirport, manualDepTime, manualArrAirport, manualArrTime, setDepartureFlight, setDestination, setDepartureDate]);
 
   const searchFlight = useCallback(async () => {
     if (!depInput.trim()) return;
@@ -184,6 +188,9 @@ export default function FlightCard() {
       }
       const flight: FlightInfo = await res.json();
       setDepartureFlight(flight);
+      if (flight.arrival?.city) setDestination(flight.arrival.city);
+      if (flight.departure?.scheduledTime) setDepartureDate(flight.departure.scheduledTime.slice(0, 10));
+      GA.flightRegistered('api', flight.flightNumber);
       setDepInput('');
     } catch {
       setError('네트워크 오류가 발생했어요');
@@ -211,7 +218,7 @@ export default function FlightCard() {
             <input
               type="date"
               value={depDate}
-              onChange={(e) => setDepDate(e.target.value)}
+              onChange={(e) => { setDepDate(e.target.value); if (e.target.value) setDepartureDate(e.target.value); }}
               className={`
                 w-full bg-transparent text-xs text-[var(--text-primary)]
                 border-b border-[var(--border)] pb-1.5
@@ -466,7 +473,7 @@ export default function FlightCard() {
 
       {/* 프리미엄 훅 */}
       <div className="mt-3 pt-3 border-t border-[var(--border-light)]">
-        <button className="
+        <button onClick={() => GA.ctaClicked('flight', '실시간 알림')} className="
           w-full py-2 rounded-xl text-[10px] font-medium
           bg-[var(--accent)]/8 text-[var(--accent)]
           hover:bg-[var(--accent)]/15 transition-all duration-200

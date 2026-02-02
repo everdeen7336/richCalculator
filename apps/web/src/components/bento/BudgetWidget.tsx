@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import BentoCard from './BentoCard';
 import { useJourneyStore } from '@/stores/journey.store';
+import { GA } from '@/lib/analytics';
 import type { Expense } from '@/types/journey';
 import { TRAVEL_CURRENCIES } from '@/types/journey';
 
@@ -663,7 +664,7 @@ export default function BudgetWidget() {
 
       {/* ── 프리미엄 훅 ── */}
       <div className="mt-3 pt-3 border-t border-[var(--border-light)]">
-        <button className="
+        <button onClick={() => GA.ctaClicked('budget', '그룹 정산')} className="
           w-full py-2 rounded-xl text-[10px] font-medium
           bg-[var(--accent)]/8 text-[var(--accent)]
           hover:bg-[var(--accent)]/15 transition-all duration-200

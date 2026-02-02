@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import BentoCard from './BentoCard';
 import { useJourneyStore } from '@/stores/journey.store';
+import { GA } from '@/lib/analytics';
 import type { JourneyItem, Place } from '@/types/journey';
 
 /* ── 도시 감지 (CanvasSearch에서 흡수) ── */
@@ -620,7 +621,7 @@ export default function ItineraryWidget() {
       {/* 프리미엄 힌트 */}
       {items.length >= 3 && (
         <div className="mt-3 pt-3 border-t border-[var(--border-light)]">
-          <button className="w-full py-2 rounded-xl text-[11px] font-medium bg-[var(--accent)]/8 text-[var(--accent)] hover:bg-[var(--accent)]/15 transition-all duration-200">
+          <button onClick={() => GA.ctaClicked('itinerary', 'AI 최적화')} className="w-full py-2 rounded-xl text-[11px] font-medium bg-[var(--accent)]/8 text-[var(--accent)] hover:bg-[var(--accent)]/15 transition-all duration-200">
             AI로 일정 최적화하기 →
           </button>
         </div>

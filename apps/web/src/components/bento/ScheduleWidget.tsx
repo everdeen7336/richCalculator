@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import BentoCard from './BentoCard';
 import { useJourneyStore } from '@/stores/journey.store';
+import { GA } from '@/lib/analytics';
 import type { ChecklistItem, ChecklistCategory } from '@/types/journey';
 
 const SECTION_META: Record<ChecklistCategory, { label: string; icon: string }> = {
@@ -246,7 +247,7 @@ export default function ScheduleWidget() {
 
       {/* 프리미엄 CTA */}
       <div className="mt-4 pt-3 border-t border-[var(--border-light)]">
-        <button className="
+        <button onClick={() => GA.ctaClicked('schedule', '실시간 알림')} className="
           w-full py-2.5 rounded-xl text-[11px] font-medium
           bg-[var(--accent)]/8 text-[var(--accent)]
           hover:bg-[var(--accent)]/15 transition-all duration-200

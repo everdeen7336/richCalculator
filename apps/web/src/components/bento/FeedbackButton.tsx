@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { GA } from '@/lib/analytics';
 
-const WEBHOOK_URL = 'https://discord.com/api/webhooks/1467999249802203169/Z6CKwhuOBggUaVmi5ddtxuUrO6rIgWLRASSQh2EMtHWlgYoG7ra8YvCEY171hrAr7BIi';
+const WEBHOOK_URL = process.env.NEXT_PUBLIC_DISCORD_WEBHOOK_URL || '';
 
 type FeedbackType = 'bug' | 'feature' | 'general';
 
@@ -43,6 +44,7 @@ export default function FeedbackButton() {
           }],
         }),
       });
+      GA.feedbackSent(type);
       setDone(true);
       setMessage('');
       setEmail('');

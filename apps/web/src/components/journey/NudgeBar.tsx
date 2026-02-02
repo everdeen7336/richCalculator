@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { useJourneyStore } from '@/stores/journey.store';
+import { GA } from '@/lib/analytics';
 import type { JourneyStage } from '@/types/journey';
 import { STAGE_META } from '@/types/journey';
 
@@ -19,14 +20,17 @@ const NUDGE_MAP: NudgeConfig[] = [
   {
     stage: 'dreaming',
     completedMessage: '',
-    nextMessage: '여행 날짜와 목적지를 정해보세요',
-    ctaLabel: '항공편 등록',
+    nextMessage: '출발 날짜와 편명을 입력하면 여행이 시작돼요 ✈️',
+    ctaLabel: '시작하기',
     ctaAction: '#flight-card',
+    externalLinks: [
+      { label: '스카이스캐너에서 항공권 검색', url: 'https://www.skyscanner.co.kr' },
+    ],
   },
   {
     stage: 'flight',
-    completedMessage: '목적지가 정해졌어요!',
-    nextMessage: '항공편을 등록하면 실시간 추적이 시작돼요',
+    completedMessage: '출발 일정이 정해졌어요!',
+    nextMessage: '편명을 등록하면 실시간 추적이 시작돼요',
     ctaLabel: '편명 등록',
     ctaAction: '#flight-card',
     externalLinks: [
@@ -181,8 +185,10 @@ export default function NudgeBar() {
   }, [effectiveDate]);
 
   const handleCta = () => {
+    GA.nudgeCtaClicked(stage, nudge.ctaLabel);
     if (nudge.ctaAction === 'switch-traveling') {
       setPhase('traveling');
+      GA.phaseSwitched('traveling');
       return;
     }
     const el = document.querySelector(nudge.ctaAction);
@@ -255,6 +261,7 @@ export default function NudgeBar() {
             href={destination ? `${link.url}/searchresults.html?ss=${encodeURIComponent(destination)}` : link.url}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => GA.externalLinkClicked(link.label)}
             className="text-[11px] px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
           >
             {link.label}

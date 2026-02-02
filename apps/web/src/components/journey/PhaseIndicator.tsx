@@ -2,6 +2,7 @@
 
 import { useJourneyStore } from '@/stores/journey.store';
 import type { JourneyPhase } from '@/types/journey';
+import { GA } from '@/lib/analytics';
 
 const PHASES: { key: JourneyPhase; label: string; icon: string }[] = [
   { key: 'planning', label: '계획', icon: '📋' },
@@ -19,7 +20,7 @@ export default function PhaseIndicator() {
         return (
           <button
             key={p.key}
-            onClick={() => setPhase(p.key)}
+            onClick={() => { setPhase(p.key); GA.phaseSwitched(p.key); }}
             className={`
               text-[11px] sm:text-[12px] px-3 sm:px-4 py-1.5 sm:py-2 rounded-full transition-all duration-300 whitespace-nowrap
               ${isActive

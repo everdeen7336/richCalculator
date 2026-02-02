@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useJourneyStore } from '@/stores/journey.store';
+import { GA } from '@/lib/analytics';
 
 export default function ShareButton() {
   const { departureFlight, returnFlight, destination, items } = useJourneyStore();
@@ -27,6 +28,7 @@ export default function ShareButton() {
     if (navigator.share) {
       try {
         await navigator.share(shareData);
+        GA.shareClicked('native');
         return;
       } catch {
         // 사용자가 취소한 경우 — 무시
@@ -36,6 +38,7 @@ export default function ShareButton() {
     // 없으면 클립보드 복사
     try {
       await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      GA.shareClicked('clipboard');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
