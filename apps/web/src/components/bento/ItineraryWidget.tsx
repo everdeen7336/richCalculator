@@ -256,6 +256,53 @@ export default function ItineraryWidget() {
   /* ── 아이템 전체 인덱스 찾기 (순서 이동용) ── */
   const getGlobalIndex = (itemId: string) => items.findIndex((i) => i.id === itemId);
 
+  /* ── 드래그 & 드롭 ── */
+  const dragItem = useRef<number | null>(null);
+  const dragOver = useRef<number | null>(null);
+  const dragItemId = useRef<string | null>(null);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dropTargetDay, setDropTargetDay] = useState<number | null>(null);
+
+  const handleDragStart = useCallback((globalIdx: number, itemId: string) => {
+    dragItem.current = globalIdx;
+    dragItemId.current = itemId;
+    setDraggingId(itemId);
+  }, []);
+
+  const handleDragEnter = useCallback((globalIdx: number) => {
+    dragOver.current = globalIdx;
+    setDropTargetDay(null);
+  }, []);
+
+  const handleDayDragEnter = useCallback((day: number) => {
+    dragOver.current = null;
+    setDropTargetDay(day);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    const id = dragItemId.current;
+
+    // DAY 헤더에 드롭 → 해당 DAY로 이동
+    if (id && dropTargetDay !== null) {
+      updateItem(id, { day: dropTargetDay });
+    }
+    // 아이템 위에 드롭 → 순서 변경
+    else if (dragItem.current !== null && dragOver.current !== null && dragItem.current !== dragOver.current) {
+      // 드롭 대상 아이템의 DAY도 가져와서 같이 변경
+      const targetItem = items[dragOver.current];
+      if (targetItem && targetItem.day !== items[dragItem.current]?.day) {
+        updateItem(id!, { day: targetItem.day || 1 });
+      }
+      moveItem(dragItem.current, dragOver.current);
+    }
+
+    dragItem.current = null;
+    dragOver.current = null;
+    dragItemId.current = null;
+    setDraggingId(null);
+    setDropTargetDay(null);
+  }, [moveItem, updateItem, items, dropTargetDay]);
+
   return (
     <BentoCard>
       <div className="flex items-center justify-between mb-3">
@@ -283,16 +330,21 @@ export default function ItineraryWidget() {
             const collapsed = collapsedDays.has(dayGroup.day);
             return (
               <div key={dayGroup.day}>
-                {/* Day 헤더 — 클릭으로 접기/펼치기 */}
+                {/* Day 헤더 — 클릭으로 접기/펼치기 + 드롭 존 */}
                 <button
                   onClick={() => toggleDay(dayGroup.day)}
-                  className="flex items-center gap-2 mb-2 w-full text-left group"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDragEnter={() => handleDayDragEnter(dayGroup.day)}
+                  className={`flex items-center gap-2 mb-2 w-full text-left group rounded-lg px-1 py-0.5 -mx-1 transition-all ${dropTargetDay === dayGroup.day && draggingId ? 'bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/40' : ''}`}
                 >
-                  <span className="text-[10px] font-bold text-[var(--accent)] bg-[var(--accent)]/8 px-2 py-0.5 rounded-full">
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors ${dropTargetDay === dayGroup.day && draggingId ? 'text-white bg-[var(--accent)]' : 'text-[var(--accent)] bg-[var(--accent)]/8'}`}>
                     DAY {dayGroup.day}
                   </span>
                   <span className="text-[10px] text-[var(--text-muted)]">{dayGroup.date}</span>
-                  {dayGroup.items.length > 0 && (
+                  {dropTargetDay === dayGroup.day && draggingId && (
+                    <span className="text-[9px] text-[var(--accent)] font-medium">여기에 놓기</span>
+                  )}
+                  {dayGroup.items.length > 0 && !(dropTargetDay === dayGroup.day && draggingId) && (
                     <span className="text-[9px] text-[var(--text-muted)] ml-auto">
                       {dayGroup.items.length}곳 · {formatMins(dayGroup.totalMins)}
                       {dayGroup.totalMins > 480 && ' ⚠️'}
@@ -380,9 +432,24 @@ export default function ItineraryWidget() {
 
                       /* ── 일반 표시 ── */
                       return (
-                        <li key={item.id} className="flex items-start gap-2 group hover:bg-[var(--bg-secondary)]/30 rounded-lg px-1 py-0.5 -mx-1 transition-colors">
-                          {/* 타임라인 */}
+                        <li
+                          key={item.id}
+                          draggable
+                          onDragStart={() => handleDragStart(globalIdx, item.id)}
+                          onDragEnter={() => handleDragEnter(globalIdx)}
+                          onDragEnd={handleDragEnd}
+                          onDragOver={(e) => e.preventDefault()}
+                          className={`flex items-start gap-2 group hover:bg-[var(--bg-secondary)]/30 rounded-lg px-1 py-0.5 -mx-1 transition-all cursor-grab active:cursor-grabbing ${draggingId === item.id ? 'opacity-40 scale-95' : ''}`}
+                        >
+                          {/* 드래그 핸들 + 아이콘 */}
                           <div className="flex flex-col items-center w-4 flex-shrink-0 pt-0.5">
+                            <span className="text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
+                              <svg width="10" height="10" viewBox="0 0 16 16" fill="currentColor">
+                                <circle cx="5" cy="4" r="1.2" /><circle cx="11" cy="4" r="1.2" />
+                                <circle cx="5" cy="8" r="1.2" /><circle cx="11" cy="8" r="1.2" />
+                                <circle cx="5" cy="12" r="1.2" /><circle cx="11" cy="12" r="1.2" />
+                              </svg>
+                            </span>
                             <span className="text-[10px]">{icon}</span>
                             {idx < dayGroup.items.length - 1 && (
                               <div className="w-px h-4 bg-[var(--border)] mt-0.5" />
@@ -426,16 +493,6 @@ export default function ItineraryWidget() {
 
                           {/* 액션 버튼 */}
                           <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                            <button
-                              onClick={() => globalIdx > 0 && moveItem(globalIdx, globalIdx - 1)}
-                              disabled={globalIdx <= 0}
-                              className="text-[8px] text-[var(--text-muted)] hover:text-[var(--accent)] disabled:opacity-30 w-4 h-4 flex items-center justify-center"
-                            >▲</button>
-                            <button
-                              onClick={() => globalIdx < items.length - 1 && moveItem(globalIdx, globalIdx + 1)}
-                              disabled={globalIdx >= items.length - 1}
-                              className="text-[8px] text-[var(--text-muted)] hover:text-[var(--accent)] disabled:opacity-30 w-4 h-4 flex items-center justify-center"
-                            >▼</button>
                             <button
                               onClick={() => startEdit(item)}
                               className="text-[9px] text-[var(--text-muted)] hover:text-[var(--accent)] w-4 h-4 flex items-center justify-center"
