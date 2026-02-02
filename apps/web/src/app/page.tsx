@@ -11,7 +11,7 @@ import QuickLinkCard from '@/components/bento/QuickLinkCard';
 import ItineraryWidget from '@/components/bento/ItineraryWidget';
 import AccommodationCard from '@/components/bento/AccommodationCard';
 import TransitFlightCard from '@/components/bento/TransitFlightCard';
-import CanvasSearch from '@/components/journey/CanvasSearch';
+
 import PhaseIndicator from '@/components/journey/PhaseIndicator';
 import ShareButton from '@/components/bento/ShareButton';
 import NudgeBar from '@/components/journey/NudgeBar';
@@ -104,9 +104,6 @@ export default function Dashboard() {
             <div className="fade-in-up fade-in-delay-4">
               <QuickLinkCard href="/air/arrival" title="입국 안내" subtitle="도착 절차" icon="🛬" />
             </div>
-            <div className="fade-in-up fade-in-delay-5">
-              <CanvasSearch />
-            </div>
           </div>
         )}
 
@@ -163,10 +160,6 @@ export default function Dashboard() {
               <ItineraryWidget />
             </div>
 
-            {/* 장소 검색 */}
-            <div className="col-span-2 fade-in-up fade-in-delay-5">
-              <CanvasSearch />
-            </div>
           </div>
         )}
       </section>

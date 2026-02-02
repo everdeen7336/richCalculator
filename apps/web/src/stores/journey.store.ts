@@ -32,6 +32,8 @@ interface JourneyStoreState {
   // ── Place Actions ──
   addItem: (item: JourneyItem) => void;
   removeItem: (id: string) => void;
+  updateItem: (id: string, updates: Partial<JourneyItem>) => void;
+  updateItemPlace: (id: string, placeUpdates: Partial<import('@/types/journey').Place>) => void;
   reorderItems: (items: JourneyItem[]) => void;
   moveItem: (fromIndex: number, toIndex: number) => void;
 
@@ -130,6 +132,16 @@ export const useJourneyStore = create<JourneyStoreState>()(
           items: s.items
             .filter((i) => i.id !== id)
             .map((item, idx) => ({ ...item, order: idx })),
+        })),
+      updateItem: (id, updates) =>
+        set((s) => ({
+          items: s.items.map((i) => i.id === id ? { ...i, ...updates } : i),
+        })),
+      updateItemPlace: (id, placeUpdates) =>
+        set((s) => ({
+          items: s.items.map((i) =>
+            i.id === id ? { ...i, place: { ...i.place, ...placeUpdates } } : i
+          ),
         })),
       reorderItems: (items) =>
         set({ items: items.map((item, idx) => ({ ...item, order: idx })) }),

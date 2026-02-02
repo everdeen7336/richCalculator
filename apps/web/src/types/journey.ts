@@ -33,6 +33,10 @@ export interface JourneyItem {
   id: string;
   place: Place;
   order: number;
+  /** 수동 DAY 할당 (1부터 시작, 미지정 시 자동 분배) */
+  day?: number;
+  /** 예상 방문 시작 시각 (HH:MM) */
+  startTime?: string;
   visitedAt?: string;
   durationMinutes?: number;
   memo?: string;
@@ -57,7 +61,31 @@ export interface Expense {
   amount: number;
   memo: string;
   createdAt: string;
+  /** 원화 환산 금액 (currency !== 'KRW'일 때) */
+  convertedAmount?: number;
+  /** 지출 통화 (기본 KRW) */
+  currency?: string;
 }
+
+/** 주요 여행 통화 */
+export const TRAVEL_CURRENCIES = [
+  { code: 'KRW', symbol: '₩', label: '원' },
+  { code: 'USD', symbol: '$', label: '달러' },
+  { code: 'JPY', symbol: '¥', label: '엔' },
+  { code: 'EUR', symbol: '€', label: '유로' },
+  { code: 'CNY', symbol: '¥', label: '위안' },
+  { code: 'THB', symbol: '฿', label: '바트' },
+  { code: 'VND', symbol: '₫', label: '동' },
+  { code: 'SGD', symbol: 'S$', label: '싱달러' },
+  { code: 'TWD', symbol: 'NT$', label: '대만달러' },
+  { code: 'PHP', symbol: '₱', label: '페소' },
+  { code: 'MYR', symbol: 'RM', label: '링깃' },
+  { code: 'IDR', symbol: 'Rp', label: '루피아' },
+  { code: 'AUD', symbol: 'A$', label: '호주달러' },
+  { code: 'GBP', symbol: '£', label: '파운드' },
+  { code: 'AED', symbol: 'د.إ', label: '디르함' },
+  { code: 'HKD', symbol: 'HK$', label: '홍콩달러' },
+] as const;
 
 /**
  * 체크리스트 항목
