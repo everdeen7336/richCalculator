@@ -9,7 +9,7 @@ import type { FlightInfo } from '@/types/journey';
 
 const GLOBE_RADIUS = 1.6;
 
-/* ── 지구 텍스처 구체 ── */
+/* ── 지구 텍스처 구체 (밝게 보정) ── */
 function EarthSphere() {
   const texture = useLoader(THREE.TextureLoader, '/earth-texture.jpg');
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -19,8 +19,10 @@ function EarthSphere() {
       <sphereGeometry args={[GLOBE_RADIUS, 64, 64]} />
       <meshStandardMaterial
         map={texture}
-        roughness={1}
+        roughness={0.85}
         metalness={0}
+        emissive="#8B9E94"
+        emissiveIntensity={0.35}
       />
     </mesh>
   );
@@ -31,20 +33,18 @@ function GlobeWireframe() {
   const lines = useMemo(() => {
     const result: THREE.Vector3[][] = [];
 
-    // 위도 라인 (15도 간격)
     for (let lat = -75; lat <= 75; lat += 15) {
       const pts: THREE.Vector3[] = [];
       for (let lon = -180; lon <= 180; lon += 5) {
-        pts.push(latLonToVec3(lat, lon, GLOBE_RADIUS));
+        pts.push(latLonToVec3(lat, lon, GLOBE_RADIUS + 0.003));
       }
       result.push(pts);
     }
 
-    // 경도 라인 (30도 간격)
     for (let lon = -180; lon < 180; lon += 30) {
       const pts: THREE.Vector3[] = [];
       for (let lat = -90; lat <= 90; lat += 5) {
-        pts.push(latLonToVec3(lat, lon, GLOBE_RADIUS));
+        pts.push(latLonToVec3(lat, lon, GLOBE_RADIUS + 0.003));
       }
       result.push(pts);
     }
@@ -58,10 +58,10 @@ function GlobeWireframe() {
         <Line
           key={i}
           points={pts}
-          color="#E7E5E2"
-          lineWidth={0.4}
+          color="#F0EFEC"
+          lineWidth={0.5}
           transparent
-          opacity={0.15}
+          opacity={0.3}
         />
       ))}
     </>
@@ -80,7 +80,6 @@ function AutoRotate({
 
   useFrame((_, delta) => {
     if (ref.current) {
-      // 항로가 있으면 느리게, 없으면 보통 속도
       ref.current.rotation.y += delta * (hasRoute ? 0.03 : 0.08);
     }
   });
@@ -88,7 +87,7 @@ function AutoRotate({
   return <group ref={ref}>{children}</group>;
 }
 
-/* ── 항로 곡선 ── */
+/* ── 항로 곡선 (밝고 눈에 띄게) ── */
 function FlightArc({
   from,
   to,
@@ -99,7 +98,6 @@ function FlightArc({
   const startVec = latLonToVec3(from[0], from[1], GLOBE_RADIUS);
   const endVec = latLonToVec3(to[0], to[1], GLOBE_RADIUS);
 
-  // 거리에 따라 arc 높이 조절
   const dist = startVec.distanceTo(endVec);
   const altitude = Math.min(0.5, dist * 0.15);
   const arcPoints = useMemo(
@@ -110,15 +108,15 @@ function FlightArc({
   return (
     <Line
       points={arcPoints}
-      color="#5B8A7A"
-      lineWidth={2}
+      color="#F2C78C"
+      lineWidth={2.5}
       transparent
-      opacity={0.85}
+      opacity={0.95}
     />
   );
 }
 
-/* ── 공항 마커 ── */
+/* ── 공항 마커 (크게) ── */
 function AirportMarker({
   coords,
   color,
@@ -127,18 +125,17 @@ function AirportMarker({
   color: string;
 }) {
   const pos = latLonToVec3(coords[0], coords[1], GLOBE_RADIUS);
-  // 마커를 구체 표면 바로 위에
-  const outerPos = pos.clone().normalize().multiplyScalar(GLOBE_RADIUS + 0.02);
+  const outerPos = pos.clone().normalize().multiplyScalar(GLOBE_RADIUS + 0.025);
 
   return (
     <mesh position={outerPos}>
-      <sphereGeometry args={[0.035, 12, 12]} />
+      <sphereGeometry args={[0.045, 16, 16]} />
       <meshBasicMaterial color={color} />
     </mesh>
   );
 }
 
-/* ── 마커에서 나오는 빛 기둥 ── */
+/* ── 마커 글로우 링 ── */
 function MarkerPulse({
   coords,
   color,
@@ -152,8 +149,8 @@ function MarkerPulse({
 
   return (
     <mesh position={outerPos}>
-      <sphereGeometry args={[0.055, 12, 12]} />
-      <meshBasicMaterial color={color} transparent opacity={0.25} />
+      <sphereGeometry args={[0.075, 16, 16]} />
+      <meshBasicMaterial color={color} transparent opacity={0.2} />
     </mesh>
   );
 }
@@ -173,7 +170,6 @@ export default function GlobeScene({
   departureFlight,
   returnFlight,
 }: GlobeSceneProps) {
-  // 항로 계산
   const routes = useMemo(() => {
     const result: { from: [number, number]; to: [number, number] }[] = [];
 
@@ -192,7 +188,6 @@ export default function GlobeScene({
     return result;
   }, [departureFlight, returnFlight]);
 
-  // 모든 마커 좌표
   const markers = useMemo(() => {
     const m: { coords: [number, number]; type: 'dep' | 'arr' }[] = [];
     const seen = new Set<string>();
@@ -225,31 +220,28 @@ export default function GlobeScene({
       camera={{ position: [0, 0, 4.5], fov: 40 }}
       style={{ background: 'transparent' }}
     >
-      <ambientLight intensity={1.2} />
-      <directionalLight position={[5, 3, 5]} intensity={0.8} />
+      {/* 밝은 조명 — 어두운 면도 밝게 */}
+      <ambientLight intensity={1.8} />
+      <directionalLight position={[5, 3, 5]} intensity={0.6} />
+      <directionalLight position={[-3, -1, 3]} intensity={0.3} />
 
       <AutoRotate hasRoute={hasRoute}>
-        {/* 지구본 (텍스처) */}
         <EarthSphere />
-
-        {/* 와이어프레임 오버레이 */}
         <GlobeWireframe />
 
-        {/* 항로 */}
         {routes.map((r, i) => (
           <FlightArc key={i} from={r.from} to={r.to} />
         ))}
 
-        {/* 마커 */}
         {markers.map((m, i) => (
           <group key={i}>
             <AirportMarker
               coords={m.coords}
-              color={m.type === 'dep' ? '#C49A6C' : '#5B8A7A'}
+              color={m.type === 'dep' ? '#F2C78C' : '#8BB5A5'}
             />
             <MarkerPulse
               coords={m.coords}
-              color={m.type === 'dep' ? '#C49A6C' : '#5B8A7A'}
+              color={m.type === 'dep' ? '#F2C78C' : '#8BB5A5'}
             />
           </group>
         ))}
