@@ -94,8 +94,10 @@ export default function FlightCard() {
   const [manualDepTime, setManualDepTime] = useState('');
   const [manualArrAirport, setManualArrAirport] = useState('');
   const [manualArrTime, setManualArrTime] = useState('');
+  const [forceManual, setForceManual] = useState(false);
 
   const isPastDate = depDate ? new Date(depDate + 'T23:59:59') < new Date(new Date().toISOString().split('T')[0] + 'T00:00:00') : false;
+  const showManualFields = isPastDate || forceManual;
 
   // 편명에서 항공사 자동 유추
   const derivedAirline = depInput.length >= 2 ? (AIRLINES[depInput.slice(0, 2)] || '') : '';
@@ -180,7 +182,7 @@ export default function FlightCard() {
           편명과 출발일을 입력하면 시간표가 자동으로 설정돼요
         </p>
 
-        <form onSubmit={(e) => { e.preventDefault(); isPastDate ? registerManualFlight() : searchFlight(); }} className="space-y-3">
+        <form onSubmit={(e) => { e.preventDefault(); showManualFields ? registerManualFlight() : searchFlight(); }} className="space-y-3">
           {/* 1. 출발 날짜 (먼저 선택) */}
           <div className="relative">
             {!depDate && (
@@ -202,9 +204,9 @@ export default function FlightCard() {
             />
           </div>
 
-          {isPastDate && (
+          {showManualFields && (
             <p className="text-[10px] text-[#B8863A]">
-              과거 날짜는 API 조회가 불가하여 수동 입력합니다
+              {forceManual ? '수동으로 입력합니다' : '과거 날짜는 API 조회가 불가하여 수동 입력합니다'}
             </p>
           )}
 
@@ -226,7 +228,7 @@ export default function FlightCard() {
             />
             <button
               type="submit"
-              disabled={loading || (isPastDate && !depInput.trim())}
+              disabled={loading || (showManualFields && !depInput.trim())}
               className="
                 text-[11px] px-3 py-1.5 rounded-full
                 bg-[var(--text-primary)] text-white
@@ -234,12 +236,12 @@ export default function FlightCard() {
                 disabled:opacity-50
               "
             >
-              {isPastDate ? '등록' : loading ? '조회 중...' : '조회'}
+              {showManualFields ? '등록' : loading ? '조회 중...' : '조회'}
             </button>
           </div>
 
           {/* 3. 과거 날짜: 수동 입력 필드 (간소화) */}
-          {isPastDate && (
+          {showManualFields && (
             <div className="space-y-2 pt-1 border-t border-[var(--border)]">
               {derivedAirline && (
                 <p className="text-[10px] text-[var(--text-secondary)]">{derivedAirline}</p>
@@ -312,6 +314,15 @@ export default function FlightCard() {
           <div className="mt-2">
             <p className="text-[11px] text-[#C4564A]">{error}</p>
             {suggestion && <p className="text-[10px] text-[var(--text-muted)] mt-1">{suggestion}</p>}
+            {!showManualFields && (
+              <button
+                type="button"
+                onClick={() => setForceManual(true)}
+                className="mt-2 text-[11px] text-[var(--accent)] hover:underline"
+              >
+                수동으로 등록하기
+              </button>
+            )}
           </div>
         )}
       </BentoCard>
@@ -327,12 +338,29 @@ export default function FlightCard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <p className="bento-label">항공편</p>
-        <button
-          onClick={clearFlights}
-          className="text-[10px] text-[var(--text-muted)] hover:text-[#C4564A] transition-colors"
-        >
-          초기화
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setDepInput(dep.flightNumber);
+              setDepDate(dep.departure.scheduledTime?.split('T')[0] || '');
+              setManualDepAirport(dep.departure.airport);
+              setManualArrAirport(dep.arrival.airport);
+              setManualDepTime(dep.departure.scheduledTime ? new Date(dep.departure.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
+              setManualArrTime(dep.arrival.scheduledTime ? new Date(dep.arrival.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
+              setForceManual(true);
+              clearFlights();
+            }}
+            className="text-[10px] text-[var(--accent)] hover:underline transition-colors"
+          >
+            수정
+          </button>
+          <button
+            onClick={clearFlights}
+            className="text-[10px] text-[var(--text-muted)] hover:text-[#C4564A] transition-colors"
+          >
+            삭제
+          </button>
+        </div>
       </div>
 
       {/* ── 출국편 ── */}

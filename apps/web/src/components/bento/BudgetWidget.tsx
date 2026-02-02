@@ -18,12 +18,17 @@ function formatKRW(n: number): string {
 }
 
 export default function BudgetWidget() {
-  const { budget, expenses, addExpense, removeExpense } = useJourneyStore();
+  const { budget, expenses, addExpense, removeExpense, updateCategoryPlanned, addBudgetCategory, removeBudgetCategory, setTotalBudget } = useJourneyStore();
   const [showForm, setShowForm] = useState(false);
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('');
   const [expMemo, setExpMemo] = useState('');
   const [showHistory, setShowHistory] = useState(false);
+  const [editingCat, setEditingCat] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const [showAddCat, setShowAddCat] = useState(false);
+  const [newCatLabel, setNewCatLabel] = useState('');
+  const [newCatPlanned, setNewCatPlanned] = useState('');
 
   const totalPlanned = budget.reduce((s, c) => s + c.planned, 0);
   const totalSpent = budget.reduce((s, c) => s + c.spent, 0);
@@ -64,6 +69,7 @@ export default function BudgetWidget() {
       {/* Summary */}
       <div className="flex items-baseline gap-2 mb-1">
         <p className="text-2xl bento-value">{formatKRW(totalPlanned)}원</p>
+        <span className="text-[10px] text-[var(--text-muted)]">총 예산</span>
       </div>
       {totalSpent > 0 && (
         <div className="flex items-center gap-3 text-xs mb-1">
@@ -93,27 +99,104 @@ export default function BudgetWidget() {
         </div>
       )}
 
-      {/* Category list */}
+      {/* Category list (editable) */}
       <ul className="space-y-1.5">
         {budget.map((cat, i) => (
-          <li key={cat.id} className="flex items-center justify-between">
+          <li key={cat.id} className="flex items-center justify-between group">
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${barColors[i % barColors.length]}`} />
               <span className="text-xs text-[var(--text-secondary)]">{cat.label}</span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {cat.spent > 0 && (
                 <span className="text-[10px] text-[var(--accent)]">
                   {formatKRW(cat.spent)}
                 </span>
               )}
-              <span className="text-xs font-medium text-[var(--text-primary)]">
-                {formatKRW(cat.planned)}원
-              </span>
+              {editingCat === cat.id ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const val = parseInt(editValue);
+                    if (val > 0) updateCategoryPlanned(cat.id, val);
+                    setEditingCat(null);
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <input
+                    type="number"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    className="w-20 text-xs text-right bg-transparent border-b border-[var(--accent)] pb-0.5 focus:outline-none text-[var(--text-primary)]"
+                    autoFocus
+                    onBlur={() => {
+                      const val = parseInt(editValue);
+                      if (val > 0) updateCategoryPlanned(cat.id, val);
+                      setEditingCat(null);
+                    }}
+                  />
+                  <span className="text-[10px] text-[var(--text-muted)]">원</span>
+                </form>
+              ) : (
+                <button
+                  onClick={() => { setEditingCat(cat.id); setEditValue(cat.planned.toString()); }}
+                  className="text-xs font-medium text-[var(--text-primary)] hover:text-[var(--accent)] transition-colors"
+                >
+                  {formatKRW(cat.planned)}원
+                </button>
+              )}
+              <button
+                onClick={() => removeBudgetCategory(cat.id)}
+                className="w-3.5 h-3.5 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 hover:text-[#C4564A] transition-all text-[10px]"
+              >
+                ×
+              </button>
             </div>
           </li>
         ))}
       </ul>
+
+      {/* 카테고리 추가 */}
+      {!showAddCat ? (
+        <button
+          onClick={() => setShowAddCat(true)}
+          className="mt-2 text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors"
+        >
+          + 카테고리 추가
+        </button>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!newCatLabel.trim()) return;
+            addBudgetCategory({
+              id: `cat-${Date.now()}`,
+              label: newCatLabel.trim(),
+              planned: parseInt(newCatPlanned) || 100000,
+              spent: 0,
+            });
+            setNewCatLabel(''); setNewCatPlanned(''); setShowAddCat(false);
+          }}
+          className="mt-2 flex gap-1.5 items-center"
+        >
+          <input
+            value={newCatLabel}
+            onChange={(e) => setNewCatLabel(e.target.value)}
+            placeholder="카테고리명"
+            className="flex-1 text-[11px] bg-transparent border-b border-[var(--border)] pb-0.5 focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+            autoFocus
+          />
+          <input
+            value={newCatPlanned}
+            onChange={(e) => setNewCatPlanned(e.target.value)}
+            placeholder="예산"
+            type="number"
+            className="w-16 text-[11px] text-right bg-transparent border-b border-[var(--border)] pb-0.5 focus:outline-none focus:border-[var(--accent)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
+          />
+          <button type="submit" className="text-[10px] text-[var(--accent)] font-medium">추가</button>
+          <button type="button" onClick={() => setShowAddCat(false)} className="text-[10px] text-[var(--text-muted)]">취소</button>
+        </form>
+      )}
 
       {/* Expense History */}
       {showHistory && expenses.length > 0 && (

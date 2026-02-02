@@ -50,6 +50,7 @@ interface JourneyStoreState {
   toggleChecklist: (id: string) => void;
   addChecklistItem: (item: ChecklistItem) => void;
   removeChecklistItem: (id: string) => void;
+  updateChecklistItem: (id: string, updates: Partial<ChecklistItem>) => void;
   resetChecklist: () => void;
 
   // ── Visit Record Actions ──
@@ -179,6 +180,12 @@ export const useJourneyStore = create<JourneyStoreState>()(
         set((s) => ({ checklist: [...s.checklist, item] })),
       removeChecklistItem: (id) =>
         set((s) => ({ checklist: s.checklist.filter((c) => c.id !== id) })),
+      updateChecklistItem: (id, updates) =>
+        set((s) => ({
+          checklist: s.checklist.map((c) =>
+            c.id === id ? { ...c, ...updates } : c
+          ),
+        })),
       resetChecklist: () => set({ checklist: PREPARATION_CHECKLIST }),
 
       // ── Visit Records ──

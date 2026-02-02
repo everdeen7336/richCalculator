@@ -30,9 +30,10 @@ interface ChecklistSectionProps {
   items: ChecklistItem[];
   toggleChecklist: (id: string) => void;
   removeChecklistItem: (id: string) => void;
+  updateChecklistItem: (id: string, updates: Partial<ChecklistItem>) => void;
 }
 
-function ChecklistSection({ category, items, toggleChecklist, removeChecklistItem }: ChecklistSectionProps) {
+function ChecklistSection({ category, items, toggleChecklist, removeChecklistItem, updateChecklistItem }: ChecklistSectionProps) {
   const meta = SECTION_META[category];
   const doneCount = items.filter((i) => i.done).length;
   const allDone = doneCount === items.length;
@@ -77,9 +78,20 @@ function ChecklistSection({ category, items, toggleChecklist, removeChecklistIte
                 <span className="text-[10px] text-[var(--text-muted)] w-12 flex-shrink-0 tabular-nums">{item.time}</span>
               )}
               <span
-                className={`text-[13px] transition-all duration-200 ${
+                className={`text-[13px] transition-all duration-200 cursor-text rounded px-0.5 -mx-0.5 hover:bg-[var(--border-light)] ${
                   item.done ? 'text-[var(--text-muted)] line-through' : 'text-[var(--text-primary)]'
                 }`}
+                contentEditable
+                suppressContentEditableWarning
+                onBlur={(e) => {
+                  const newLabel = e.currentTarget.textContent?.trim();
+                  if (newLabel && newLabel !== item.label) {
+                    updateChecklistItem(item.id, { label: newLabel });
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+                }}
               >
                 {item.label}
               </span>
@@ -105,7 +117,7 @@ function ChecklistSection({ category, items, toggleChecklist, removeChecklistIte
 }
 
 export default function ScheduleWidget() {
-  const { checklist, toggleChecklist, addChecklistItem, removeChecklistItem, resetChecklist } = useJourneyStore();
+  const { checklist, toggleChecklist, addChecklistItem, removeChecklistItem, updateChecklistItem, resetChecklist } = useJourneyStore();
   const [showAdd, setShowAdd] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newTime, setNewTime] = useState('');
@@ -168,6 +180,7 @@ export default function ScheduleWidget() {
             items={g.items}
             toggleChecklist={toggleChecklist}
             removeChecklistItem={removeChecklistItem}
+            updateChecklistItem={updateChecklistItem}
           />
         ))}
       </div>

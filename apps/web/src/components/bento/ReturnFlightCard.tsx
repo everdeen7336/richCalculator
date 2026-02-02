@@ -89,8 +89,10 @@ export default function ReturnFlightCard() {
   const [manualDepTime, setManualDepTime] = useState('');
   const [manualArrAirport, setManualArrAirport] = useState('');
   const [manualArrTime, setManualArrTime] = useState('');
+  const [forceManual, setForceManual] = useState(false);
 
   const isPastDate = retDate ? new Date(retDate + 'T23:59:59') < new Date(new Date().toISOString().split('T')[0] + 'T00:00:00') : false;
+  const showManualFields = isPastDate || forceManual;
   const derivedAirline = retInput.length >= 2 ? (AIRLINES[retInput.slice(0, 2)] || '') : '';
 
   useEffect(() => {
@@ -172,7 +174,7 @@ export default function ReturnFlightCard() {
           귀국편을 등록하면 돌아오는 일정도 관리돼요
         </p>
 
-        <form onSubmit={(e) => { e.preventDefault(); isPastDate ? registerManualFlight() : searchFlight(); }} className="space-y-3">
+        <form onSubmit={(e) => { e.preventDefault(); showManualFields ? registerManualFlight() : searchFlight(); }} className="space-y-3">
           {/* 1. 날짜 먼저 */}
           <div className="relative">
             {!retDate && (
@@ -194,9 +196,9 @@ export default function ReturnFlightCard() {
             />
           </div>
 
-          {isPastDate && (
+          {showManualFields && (
             <p className="text-[10px] text-[#B8863A]">
-              과거 날짜는 API 조회가 불가하여 수동 입력합니다
+              {forceManual ? '수동으로 입력합니다' : '과거 날짜는 API 조회가 불가하여 수동 입력합니다'}
             </p>
           )}
 
@@ -218,7 +220,7 @@ export default function ReturnFlightCard() {
             />
             <button
               type="submit"
-              disabled={loading || (isPastDate && !retInput.trim())}
+              disabled={loading || (showManualFields && !retInput.trim())}
               className="
                 text-[11px] px-3 py-1.5 rounded-full
                 bg-[var(--text-primary)] text-white
@@ -226,12 +228,12 @@ export default function ReturnFlightCard() {
                 disabled:opacity-50
               "
             >
-              {isPastDate ? '등록' : loading ? '조회 중...' : '조회'}
+              {showManualFields ? '등록' : loading ? '조회 중...' : '조회'}
             </button>
           </div>
 
           {/* 3. 과거 날짜: 수동 입력 (간소화) */}
-          {isPastDate && (
+          {showManualFields && (
             <div className="space-y-2 pt-1 border-t border-[var(--border)]">
               {derivedAirline && (
                 <p className="text-[10px] text-[var(--text-secondary)]">{derivedAirline}</p>
@@ -304,6 +306,15 @@ export default function ReturnFlightCard() {
           <div className="mt-2">
             <p className="text-[11px] text-[#C4564A]">{error}</p>
             {suggestion && <p className="text-[10px] text-[var(--text-muted)] mt-1">{suggestion}</p>}
+            {!showManualFields && (
+              <button
+                type="button"
+                onClick={() => setForceManual(true)}
+                className="mt-2 text-[11px] text-[var(--accent)] hover:underline"
+              >
+                수동으로 등록하기
+              </button>
+            )}
           </div>
         )}
       </BentoCard>
@@ -318,12 +329,29 @@ export default function ReturnFlightCard() {
     <BentoCard>
       <div className="flex items-center justify-between mb-3">
         <p className="bento-label">귀국편</p>
-        <button
-          onClick={clearReturnFlight}
-          className="text-[10px] text-[var(--text-muted)] hover:text-[#C4564A] transition-colors"
-        >
-          초기화
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setRetInput(ret.flightNumber);
+              setRetDate(ret.departure.scheduledTime?.split('T')[0] || '');
+              setManualDepAirport(ret.departure.airport);
+              setManualArrAirport(ret.arrival.airport);
+              setManualDepTime(ret.departure.scheduledTime ? new Date(ret.departure.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
+              setManualArrTime(ret.arrival.scheduledTime ? new Date(ret.arrival.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
+              setForceManual(true);
+              clearReturnFlight();
+            }}
+            className="text-[10px] text-[var(--accent)] hover:underline transition-colors"
+          >
+            수정
+          </button>
+          <button
+            onClick={clearReturnFlight}
+            className="text-[10px] text-[var(--text-muted)] hover:text-[#C4564A] transition-colors"
+          >
+            삭제
+          </button>
+        </div>
       </div>
 
       <div className="space-y-3">
