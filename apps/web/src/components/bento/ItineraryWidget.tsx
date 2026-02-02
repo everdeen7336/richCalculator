@@ -509,7 +509,7 @@ export default function ItineraryWidget() {
 
                     {/* 이 DAY에 빈 상태 */}
                     {dayGroup.items.length === 0 && (
-                      <li className="text-[10px] text-[var(--text-muted)] italic py-1 ml-6">일정 없음</li>
+                      <li className="text-[10px] text-[var(--text-muted)] italic py-1 ml-6">장소를 추가해보세요</li>
                     )}
                   </ul>
                 )}

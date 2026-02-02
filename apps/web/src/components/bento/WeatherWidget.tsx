@@ -153,7 +153,7 @@ export default function WeatherWidget() {
     return (
       <BentoCard>
         <p className="bento-label mb-3">날씨</p>
-        <p className="text-sm text-[var(--text-muted)]">날씨 정보를 불러올 수 없어요</p>
+        <p className="text-sm text-[var(--text-muted)]">날씨 정보를 준비 중이에요</p>
       </BentoCard>
     );
   }

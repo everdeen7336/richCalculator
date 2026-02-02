@@ -123,7 +123,7 @@ export default function TransitFlightCard() {
       const res = await fetch(`/api/flight?${params.toString()}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.error || '조회에 실패했어요');
+        setError(body.error || '편명을 다시 확인해주세요');
         setLoading(false);
         return;
       }

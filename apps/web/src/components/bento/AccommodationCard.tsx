@@ -164,7 +164,7 @@ export default function AccommodationCard() {
       {/* 빈 상태 — 외부 검색 유도 */}
       {accommodations.length === 0 && !adding && (
         <div className="text-center py-3">
-          <p className="text-[12px] text-[var(--text-muted)] mb-3">아직 숙소가 없어요</p>
+          <p className="text-[12px] text-[var(--text-muted)] mb-3">숙소를 등록해보세요</p>
           <div className="flex gap-2 justify-center flex-wrap">
             {destination && (
               <>

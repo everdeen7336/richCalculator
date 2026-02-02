@@ -168,7 +168,7 @@ export default function ReturnFlightCard() {
       const res = await fetch(`/api/flight?${params.toString()}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
-        setError(body.error || '조회에 실패했어요');
+        setError(body.error || '편명을 다시 확인해주세요');
         if (body.suggestion) setSuggestion(body.suggestion);
         setLoading(false);
         return;
@@ -177,7 +177,7 @@ export default function ReturnFlightCard() {
       setReturnFlight(flight);
       setRetInput('');
     } catch {
-      setError('네트워크 오류가 발생했어요');
+      setError('잠시 후 다시 시도해주세요');
     }
     setLoading(false);
   }, [retInput, retDate, setReturnFlight]);
@@ -215,7 +215,7 @@ export default function ReturnFlightCard() {
 
           {showManualFields && (
             <p className="text-[10px] text-[#B8863A]">
-              {forceManual ? '수동으로 입력합니다' : '과거 날짜는 API 조회가 불가하여 수동 입력합니다'}
+              {forceManual ? '직접 입력할 수 있어요' : '과거 날짜는 직접 입력할 수 있어요'}
             </p>
           )}
 
