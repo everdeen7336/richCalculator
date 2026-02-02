@@ -89,7 +89,7 @@ function getCountdown(iso: string): string | null {
 }
 
 export default function FlightCard() {
-  const { departureFlight, setDepartureFlight, clearFlights } = useJourneyStore();
+  const { departureFlight, setDepartureFlight, clearDepartureFlight, clearFlights } = useJourneyStore();
 
   const [depInput, setDepInput] = useState('');
   const [depDate, setDepDate] = useState('');
@@ -104,6 +104,7 @@ export default function FlightCard() {
   const [manualArrAirport, setManualArrAirport] = useState('');
   const [manualArrTime, setManualArrTime] = useState('');
   const [forceManual, setForceManual] = useState(false);
+  const [editBackup, setEditBackup] = useState<FlightInfo | null>(null);
 
   const isPastDate = depDate ? new Date(depDate + 'T23:59:59') < new Date(new Date().toISOString().split('T')[0] + 'T00:00:00') : false;
   const showManualFields = isPastDate || forceManual;
@@ -160,6 +161,8 @@ export default function FlightCard() {
     };
     setDepartureFlight(flight);
     setDepInput('');
+    setEditBackup(null);
+    setForceManual(false);
   }, [depInput, depDate, manualDepAirport, manualDepTime, manualArrAirport, manualArrTime, setDepartureFlight]);
 
   const searchFlight = useCallback(async () => {
@@ -253,6 +256,25 @@ export default function FlightCard() {
             >
               {showManualFields ? '등록' : loading ? '조회 중...' : '조회'}
             </button>
+            {editBackup && (
+              <button
+                type="button"
+                onClick={() => {
+                  setDepartureFlight(editBackup);
+                  setEditBackup(null);
+                  setForceManual(false);
+                  setDepInput('');
+                  setDepDate('');
+                  setManualDepAirport('');
+                  setManualArrAirport('');
+                  setManualDepTime('');
+                  setManualArrTime('');
+                }}
+                className="text-[11px] px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:text-[#C4564A] hover:border-[#C4564A] transition-colors"
+              >
+                취소
+              </button>
+            )}
           </div>
 
           {/* 3. 과거 날짜: 수동 입력 필드 (간소화) */}
@@ -356,14 +378,15 @@ export default function FlightCard() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
+              setEditBackup(dep);
               setDepInput(dep.flightNumber);
-              setDepDate(dep.departure.scheduledTime?.split('T')[0] || '');
+              setDepDate(dep.departure.scheduledTime ? dep.departure.scheduledTime.slice(0, 10) : '');
               setManualDepAirport(dep.departure.airport);
               setManualArrAirport(dep.arrival.airport);
-              setManualDepTime(dep.departure.scheduledTime ? new Date(dep.departure.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
-              setManualArrTime(dep.arrival.scheduledTime ? new Date(dep.arrival.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
+              setManualDepTime(dep.departure.scheduledTime?.length >= 16 ? dep.departure.scheduledTime.slice(11, 16) : '');
+              setManualArrTime(dep.arrival.scheduledTime?.length >= 16 ? dep.arrival.scheduledTime.slice(11, 16) : '');
               setForceManual(true);
-              clearFlights();
+              clearDepartureFlight();
             }}
             className="text-[10px] text-[var(--accent)] hover:underline transition-colors"
           >

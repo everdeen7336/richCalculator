@@ -70,6 +70,7 @@ interface JourneyStoreState {
   addTransitFlight: (flight: FlightInfo) => void;
   removeTransitFlight: (index: number) => void;
   updateTransitFlight: (index: number, flight: FlightInfo) => void;
+  clearDepartureFlight: () => void;
   clearReturnFlight: () => void;
   clearFlights: () => void;
 
@@ -261,6 +262,8 @@ export const useJourneyStore = create<JourneyStoreState>()(
         set((s) => ({
           transitFlights: s.transitFlights.map((f, i) => i === index ? flight : f),
         })),
+      clearDepartureFlight: () =>
+        set({ departureFlight: null }),
       clearReturnFlight: () =>
         set({ returnFlight: null }),
       clearFlights: () =>

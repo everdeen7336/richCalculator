@@ -347,11 +347,11 @@ export default function ReturnFlightCard() {
           <button
             onClick={() => {
               setRetInput(ret.flightNumber);
-              setRetDate(ret.departure.scheduledTime?.split('T')[0] || '');
+              setRetDate(ret.departure.scheduledTime ? ret.departure.scheduledTime.slice(0, 10) : '');
               setManualDepAirport(ret.departure.airport);
               setManualArrAirport(ret.arrival.airport);
-              setManualDepTime(ret.departure.scheduledTime ? new Date(ret.departure.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
-              setManualArrTime(ret.arrival.scheduledTime ? new Date(ret.arrival.scheduledTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '');
+              setManualDepTime(ret.departure.scheduledTime?.length >= 16 ? ret.departure.scheduledTime.slice(11, 16) : '');
+              setManualArrTime(ret.arrival.scheduledTime?.length >= 16 ? ret.arrival.scheduledTime.slice(11, 16) : '');
               setForceManual(true);
               clearReturnFlight();
             }}
