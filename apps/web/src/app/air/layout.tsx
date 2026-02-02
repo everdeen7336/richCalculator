@@ -3,6 +3,7 @@
 import { Providers } from '../providers';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import FeedbackButton from '@/components/bento/FeedbackButton';
 
 const navItems = [
   { href: '/air', label: '홈', icon: '🏠', exact: true },
@@ -48,6 +49,7 @@ export default function AirLayout({ children }: { children: React.ReactNode }) {
       <div className="pb-16">
         {children}
       </div>
+      <FeedbackButton />
       <BottomNav />
     </Providers>
   );

@@ -98,6 +98,7 @@ export default function ReturnFlightCard() {
   const [manualArrAirport, setManualArrAirport] = useState('');
   const [manualArrTime, setManualArrTime] = useState('');
   const [forceManual, setForceManual] = useState(false);
+  const [editBackup, setEditBackup] = useState<FlightInfo | null>(null);
 
   const isPastDate = retDate ? new Date(retDate + 'T23:59:59') < new Date(new Date().toISOString().split('T')[0] + 'T00:00:00') : false;
   const showManualFields = isPastDate || forceManual;
@@ -151,6 +152,8 @@ export default function ReturnFlightCard() {
     };
     setReturnFlight(flight);
     setRetInput('');
+    setEditBackup(null);
+    setForceManual(false);
   }, [retInput, retDate, manualDepAirport, manualDepTime, manualArrAirport, manualArrTime, setReturnFlight]);
 
   const searchFlight = useCallback(async () => {
@@ -244,6 +247,25 @@ export default function ReturnFlightCard() {
             >
               {showManualFields ? '등록' : loading ? '조회 중...' : '조회'}
             </button>
+            {editBackup && (
+              <button
+                type="button"
+                onClick={() => {
+                  setReturnFlight(editBackup);
+                  setEditBackup(null);
+                  setForceManual(false);
+                  setRetInput('');
+                  setRetDate('');
+                  setManualDepAirport('');
+                  setManualArrAirport('');
+                  setManualDepTime('');
+                  setManualArrTime('');
+                }}
+                className="text-[11px] px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:text-[#C4564A] hover:border-[#C4564A] transition-colors"
+              >
+                취소
+              </button>
+            )}
           </div>
 
           {/* 3. 과거 날짜: 수동 입력 (간소화) */}
@@ -346,6 +368,7 @@ export default function ReturnFlightCard() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
+              setEditBackup(ret);
               setRetInput(ret.flightNumber);
               setRetDate(ret.departure.scheduledTime ? ret.departure.scheduledTime.slice(0, 10) : '');
               setManualDepAirport(ret.departure.airport);

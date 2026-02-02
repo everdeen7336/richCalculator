@@ -426,6 +426,76 @@ interface PackingItem {
 
 ---
 
+## 개발 진행 현황 (최종 업데이트: 2026-02-03)
+
+### Phase 1 MVP 체크리스트 — 구현 완료 항목
+
+| 기능 | 상태 | 비고 |
+|------|------|------|
+| 항공편 등록 (API + 수동) | ✅ 완료 | AviationStack/AirLabs/AeroDataBox 3중 폴백 |
+| 귀국편 등록 | ✅ 완료 | ReturnFlightCard |
+| 경유편 등록 | ✅ 완료 | TransitFlightCard (다중 경유 지원) |
+| 야간 비행 (다음날 도착) 처리 | ✅ 완료 | 출발/귀국/경유 모두 적용, "+1" 표시 |
+| 항공편 수정/삭제 | ✅ 완료 | 수정 시 취소 버튼, 출발편만 개별 초기화 |
+| 3D 지구본 + 항로 시각화 | ✅ 완료 | GlobeHero (Three.js) |
+| 현지 시간 위젯 | ✅ 완료 | ClockWidget |
+| 날씨 위젯 | ✅ 완료 | WeatherWidget (OpenWeatherMap) |
+| 예산 관리 | ✅ 완료 | BudgetWidget (카테고리별 계획/지출, 총예산 편집) |
+| 체크리스트 3종 분리 | ✅ 완료 | ScheduleWidget (준비/수속/입국, phase별 표시) |
+| 일정 관리 (DAY별 타임라인) | ✅ 완료 | ItineraryWidget (장소 추가, 드래그&드롭 재정렬, 크로스-DAY 이동) |
+| 숙소 등록 | ✅ 완료 | AccommodationCard |
+| NudgeBar (여정 넛징) | ✅ 완료 | 8단계 자동 감지, 진행률 바, D-day, CTA, 외부 딥링크 |
+| PWA 오프라인 모드 | ✅ 완료 | Service Worker + 캐시 |
+| 공유 기능 | ✅ 완료 | Web Share API + 클립보드 폴백 + OG 메타 |
+| phase 2개 단순화 | ✅ 완료 | planning / traveling |
+| 프리미엄 CTA 삽입 | ✅ 완료 | 4개 위젯에 업셀 훅 |
+| 랜딩 히어로 | ✅ 완료 | 3D 지구본 + 가치 제안 |
+| QuickLinkCard | ✅ 완료 | 출국/입국 안내 링크 |
+| PhaseIndicator | ✅ 완료 | planning ↔ traveling 전환 |
+
+### Phase 1 — 미완료 / 알려진 한계
+
+| 항목 | 상태 | 설명 |
+|------|------|------|
+| AirportStatusWidget | ⚠️ UI 셸만 | useForecast, useParking 커스텀 훅 미구현 |
+| 프리미엄 CTA 4개 | ⚠️ 버튼만 | 실제 기능/결제 없음 (검증용 CTR 측정 목적) |
+| 실시간 push 알림 | ❌ 미구현 | Phase 2 범위 |
+| 그룹 경비 정산 | ❌ 미구현 | Phase 2 범위 |
+| AI 일정 최적화 | ❌ 미구현 | Phase 2 범위 |
+| CanvasSearch / ContextCard / RecordingTimeline | 🗑️ 미사용 | page.tsx에서 제거됨, 파일만 잔존 |
+
+### 넛징 시스템 구현 현황 (섹션 6 대비)
+
+| 구현 우선순위 항목 | 상태 | 비고 |
+|-------------------|------|------|
+| 1. NudgeBar | ✅ 완료 | 8단계 감지 + 넛지 메시지 + CTA + 외부 딥링크 + 진행률 |
+| 2. AccommodationCard | ✅ 완료 | 숙소 등록/표시/수정/삭제 |
+| 3. JourneyProgress | ✅ 완료 | NudgeBar 내 useCurrentStage 훅으로 통합 |
+| 4. 외부 딥링크 | ⚠️ 부분 | Booking.com, 에어비앤비, 스카이스캐너 기본 연결만 (파라미터 자동 채움 미완) |
+| 5. PackingChecklist 세분화 | ❌ 미구현 | 현재 단일 preparation 카테고리 |
+| 6. D-day 카운트다운 | ✅ 완료 | NudgeBar 내 dDayText |
+| 7. phase 자동 전환 제안 | ❌ 미구현 | |
+| 8. 일일 브리핑 | ❌ 미구현 | |
+
+### 최근 개발 이력
+
+- CanvasSearch ↔ ItineraryWidget 기능 통합 (중복 제거)
+- ItineraryWidget에 드래그&드롭 재정렬 + 크로스-DAY 이동 추가
+- 야간 비행 (다음날 도착) 처리 — FlightCard, ReturnFlightCard, TransitFlightCard
+- 항공편 수정 시 InvalidDate 버그 수정 (AirLabs API 공백 구분자 대응)
+- 항공편 수정 시 취소 버튼 추가 + 출발편만 개별 초기화 (clearDepartureFlight)
+
+### 아키텍처 메모
+
+- **상태관리**: Zustand 단일 스토어 (`journey.store.ts`) + localStorage persist
+  - 상태 필드 14개, 액션 32개
+  - 기본 예산 카테고리: 항공 ₩450K / 숙소 ₩320K / 식비 ₩200K / 기타 ₩130K
+- **컴포넌트 구조**: `bento/` (위젯 13개) + `journey/` (여정 흐름 6개, 이 중 3개 미사용)
+- **API**: `/api/flight` 라우트 — AviationStack → AirLabs → AeroDataBox 순차 폴백 + 15분 캐시
+- **주의**: AirLabs API는 scheduledTime을 공백 구분자(`2025-07-15 14:30`)로 반환할 수 있음 → `split('T')` 대신 `slice(0,10)` / `slice(11,16)` 사용
+
+---
+
 ## 기술 스택
 - Next.js 14 (App Router) + React 18
 - Zustand (상태관리) + localStorage 영속화

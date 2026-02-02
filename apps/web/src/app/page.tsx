@@ -16,6 +16,7 @@ import PhaseIndicator from '@/components/journey/PhaseIndicator';
 import ShareButton from '@/components/bento/ShareButton';
 import NudgeBar from '@/components/journey/NudgeBar';
 import GlobeHero from '@/components/3d/GlobeHero';
+import FeedbackButton from '@/components/bento/FeedbackButton';
 import { useJourneyStore } from '@/stores/journey.store';
 
 export default function Dashboard() {
@@ -163,6 +164,9 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+
+      {/* 문의 버튼 */}
+      <FeedbackButton />
 
       {/* Footer */}
       <footer className="text-center pb-8 space-y-2">
