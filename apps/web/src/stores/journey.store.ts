@@ -8,6 +8,7 @@ import type {
   ChecklistItem,
   VisitRecord,
   FlightInfo,
+  Accommodation,
 } from '@/types/journey';
 import { DEFAULT_CHECKLIST, PREPARATION_CHECKLIST, generateFlightChecklist, generateArrivalChecklist, migratePhase } from '@/types/journey';
 
@@ -63,6 +64,12 @@ interface JourneyStoreState {
   clearReturnFlight: () => void;
   clearFlights: () => void;
 
+  // ── Accommodation Actions ──
+  accommodations: Accommodation[];
+  addAccommodation: (acc: Accommodation) => void;
+  removeAccommodation: (id: string) => void;
+  updateAccommodation: (id: string, updates: Partial<Accommodation>) => void;
+
   // ── Global ──
   reset: () => void;
 }
@@ -100,6 +107,7 @@ export const useJourneyStore = create<JourneyStoreState>()(
       destination: '',
       departureFlight: null,
       returnFlight: null,
+      accommodations: [],
 
       // ── Journey ──
       setPhase: (phase) => set({ phase }),
@@ -207,6 +215,18 @@ export const useJourneyStore = create<JourneyStoreState>()(
       clearFlights: () =>
         set({ departureFlight: null, returnFlight: null, checklist: PREPARATION_CHECKLIST }),
 
+      // ── Accommodation ──
+      addAccommodation: (acc) =>
+        set((s) => ({ accommodations: [...s.accommodations, acc] })),
+      removeAccommodation: (id) =>
+        set((s) => ({ accommodations: s.accommodations.filter((a) => a.id !== id) })),
+      updateAccommodation: (id, updates) =>
+        set((s) => ({
+          accommodations: s.accommodations.map((a) =>
+            a.id === id ? { ...a, ...updates } : a
+          ),
+        })),
+
       // ── Global ──
       reset: () =>
         set({
@@ -221,6 +241,7 @@ export const useJourneyStore = create<JourneyStoreState>()(
           destination: '',
           departureFlight: null,
           returnFlight: null,
+          accommodations: [],
         }),
     }),
     {

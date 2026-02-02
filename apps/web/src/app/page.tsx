@@ -9,9 +9,11 @@ import FlightCard from '@/components/bento/FlightCard';
 import ReturnFlightCard from '@/components/bento/ReturnFlightCard';
 import QuickLinkCard from '@/components/bento/QuickLinkCard';
 import ItineraryWidget from '@/components/bento/ItineraryWidget';
+import AccommodationCard from '@/components/bento/AccommodationCard';
 import CanvasSearch from '@/components/journey/CanvasSearch';
 import PhaseIndicator from '@/components/journey/PhaseIndicator';
 import ShareButton from '@/components/bento/ShareButton';
+import NudgeBar from '@/components/journey/NudgeBar';
 import GlobeHero from '@/components/3d/GlobeHero';
 import { useJourneyStore } from '@/stores/journey.store';
 
@@ -45,39 +47,47 @@ export default function Dashboard() {
         <GlobeHero departureFlight={departureFlight} returnFlight={returnFlight} />
       </div>
 
+      {/* NudgeBar — 컨텍스트 인식 다음 행동 넛징 */}
+      <div className="max-w-3xl mx-auto">
+        <NudgeBar />
+      </div>
+
       {/* Phase-Adaptive Bento Grid */}
       <section className="px-5 pt-0 pb-16 max-w-3xl mx-auto">
 
         {/* ──────────── 계획 (PLANNING) ──────────── */}
-        {/* 여행자 상황: 여행 전, 계획 세우는 중 */}
-        {/* 핵심: 항공편 등록 → 일정/예산 → 날씨 확인 → 출입국 안내 */}
         {phase === 'planning' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {/* 항공편 등록 */}
-            <div className="col-span-2 fade-in-up fade-in-delay-1">
+            <div id="flight-card" className="col-span-2 fade-in-up fade-in-delay-1">
               <FlightCard />
             </div>
             <div className="col-span-2 fade-in-up fade-in-delay-1">
               <ReturnFlightCard />
             </div>
 
-            {/* 체크리스트 (준비 + 항공편 등록 시 수속 추가) */}
-            <div className="col-span-2 fade-in-up fade-in-delay-2">
+            {/* 숙소 */}
+            <div id="accommodation-card" className="col-span-2 fade-in-up fade-in-delay-2">
+              <AccommodationCard />
+            </div>
+
+            {/* 체크리스트 */}
+            <div id="schedule-widget" className="col-span-2 fade-in-up fade-in-delay-2">
               <ScheduleWidget />
             </div>
 
             {/* 예산 */}
-            <div className="col-span-2 fade-in-up fade-in-delay-2">
+            <div id="budget-widget" className="col-span-2 fade-in-up fade-in-delay-3">
               <BudgetWidget />
             </div>
 
-            {/* 여행 일정 (장소 추가 → 일별 타임라인) */}
-            <div className="col-span-2 fade-in-up fade-in-delay-3">
+            {/* 여행 일정 */}
+            <div id="itinerary-widget" className="col-span-2 fade-in-up fade-in-delay-3">
               <ItineraryWidget />
             </div>
 
             {/* 목적지 날씨 + 출입국 안내 */}
-            <div className="fade-in-up fade-in-delay-3">
+            <div className="fade-in-up fade-in-delay-4">
               <WeatherWidget />
             </div>
             <div className="fade-in-up fade-in-delay-4">
@@ -93,12 +103,10 @@ export default function Dashboard() {
         )}
 
         {/* ──────────── 여행 중 (TRAVELING) ──────────── */}
-        {/* 여행자 상황: 출발 당일 ~ 귀국까지 */}
-        {/* 핵심: 실시간 항공편 → 공항 현황 → 시간/날씨 → 체크리스트 → 경비 */}
         {phase === 'traveling' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {/* 항공편 실시간 */}
-            <div className="col-span-2 fade-in-up fade-in-delay-1">
+            <div id="flight-card" className="col-span-2 fade-in-up fade-in-delay-1">
               <FlightCard />
             </div>
             <div className="col-span-2 fade-in-up fade-in-delay-1">
@@ -120,18 +128,23 @@ export default function Dashboard() {
               <WeatherWidget />
             </div>
 
-            {/* 체크리스트 (수속 + 입국) */}
-            <div className="col-span-2 fade-in-up fade-in-delay-4">
+            {/* 숙소 */}
+            <div id="accommodation-card" className="col-span-2 fade-in-up fade-in-delay-4">
+              <AccommodationCard />
+            </div>
+
+            {/* 체크리스트 */}
+            <div id="schedule-widget" className="col-span-2 fade-in-up fade-in-delay-4">
               <ScheduleWidget />
             </div>
 
             {/* 경비 추적 */}
-            <div className="col-span-2 fade-in-up fade-in-delay-4">
+            <div id="budget-widget" className="col-span-2 fade-in-up fade-in-delay-5">
               <BudgetWidget />
             </div>
 
             {/* 오늘 일정 */}
-            <div className="col-span-2 fade-in-up fade-in-delay-5">
+            <div id="itinerary-widget" className="col-span-2 fade-in-up fade-in-delay-5">
               <ItineraryWidget />
             </div>
 

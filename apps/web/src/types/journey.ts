@@ -219,3 +219,69 @@ export const DEPARTURE_CHECKLIST: ChecklistItem[] = [
 
 /** 하위호환용 기본 체크리스트 */
 export const DEFAULT_CHECKLIST: ChecklistItem[] = PREPARATION_CHECKLIST;
+
+/**
+ * 숙소 정보
+ */
+export type AccommodationType = 'hotel' | 'airbnb' | 'hostel' | 'guesthouse' | 'other';
+
+export interface Accommodation {
+  id: string;
+  name: string;
+  type: AccommodationType;
+  checkIn: string;   // ISO date
+  checkOut: string;  // ISO date
+  address?: string;
+  confirmationCode?: string;
+  cost?: number;
+  currency?: string;
+  memo?: string;
+  booked: boolean;
+}
+
+export const ACCOMMODATION_TYPE_LABEL: Record<AccommodationType, string> = {
+  hotel: '호텔',
+  airbnb: '에어비앤비',
+  hostel: '호스텔',
+  guesthouse: '게스트하우스',
+  other: '기타',
+};
+
+/**
+ * 여정 단계 (8-step Journey Stage) — 자동 계산
+ */
+export type JourneyStage =
+  | 'dreaming'       // S1: 목적지/날짜 미정
+  | 'flight'         // S2: 항공권 미등록
+  | 'accommodation'  // S3: 숙소 미등록
+  | 'itinerary'      // S4: 일정 부족
+  | 'packing'        // S5: 준비물 미완료
+  | 'departure'      // S6: 출국 당일
+  | 'ontrip'         // S7: 현지 여행 중
+  | 'return';        // S8: 귀국
+
+export const STAGE_META: Record<JourneyStage, { icon: string; label: string; order: number }> = {
+  dreaming:      { icon: '💭', label: '여행 결심', order: 0 },
+  flight:        { icon: '✈️', label: '항공권', order: 1 },
+  accommodation: { icon: '🏨', label: '숙소', order: 2 },
+  itinerary:     { icon: '📍', label: '일정', order: 3 },
+  packing:       { icon: '🧳', label: '준비물', order: 4 },
+  departure:     { icon: '🛫', label: '출국', order: 5 },
+  ontrip:        { icon: '🌍', label: '여행 중', order: 6 },
+  return:        { icon: '🏠', label: '귀국', order: 7 },
+};
+
+/** 외부 서비스 딥링크 */
+export function getDeepLinks(destination: string, departureDate: string, returnDate?: string) {
+  const dest = encodeURIComponent(destination);
+  const dep = departureDate;
+  const ret = returnDate || '';
+  return {
+    skyscanner: `https://www.skyscanner.co.kr/transport/flights/ICN/${dest}/${dep}/`,
+    naverFlight: `https://flight.naver.com/flights/international/${dep}?adult=1&isDirect=true&fareType=Y`,
+    booking: `https://www.booking.com/searchresults.html?ss=${dest}&checkin=${dep}&checkout=${ret}`,
+    airbnb: `https://www.airbnb.co.kr/s/${dest}/homes?checkin=${dep}&checkout=${ret}`,
+    googleMap: `https://www.google.com/maps/search/${dest}`,
+    tripadvisor: `https://www.tripadvisor.co.kr/Search?q=${dest}`,
+  };
+}
