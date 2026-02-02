@@ -45,6 +45,8 @@ interface JourneyStoreState {
   // ── Expense Actions ──
   addExpense: (expense: Expense) => void;
   removeExpense: (expenseId: string) => void;
+  updateExpense: (expenseId: string, updates: Partial<Pick<Expense, 'amount' | 'memo' | 'categoryId'>>) => void;
+  updateCategoryLabel: (categoryId: string, label: string) => void;
 
   // ── Checklist Actions ──
   toggleChecklist: (id: string) => void;
@@ -168,6 +170,23 @@ export const useJourneyStore = create<JourneyStoreState>()(
             budget: syncBudgetWithExpenses(s.budget, nextExpenses),
           };
         }),
+
+      updateExpense: (expenseId, updates) =>
+        set((s) => {
+          const nextExpenses = s.expenses.map((e) =>
+            e.id === expenseId ? { ...e, ...updates } : e
+          );
+          return {
+            expenses: nextExpenses,
+            budget: syncBudgetWithExpenses(s.budget, nextExpenses),
+          };
+        }),
+      updateCategoryLabel: (categoryId, label) =>
+        set((s) => ({
+          budget: s.budget.map((c) =>
+            c.id === categoryId ? { ...c, label } : c
+          ),
+        })),
 
       // ── Checklist ──
       toggleChecklist: (id) =>

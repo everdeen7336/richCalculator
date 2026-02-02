@@ -18,7 +18,7 @@ function formatKRW(n: number): string {
 }
 
 export default function BudgetWidget() {
-  const { budget, expenses, addExpense, removeExpense, updateCategoryPlanned, addBudgetCategory, removeBudgetCategory, setTotalBudget } = useJourneyStore();
+  const { budget, expenses, addExpense, removeExpense, updateExpense, updateCategoryPlanned, updateCategoryLabel, addBudgetCategory, removeBudgetCategory, setTotalBudget } = useJourneyStore();
   const [showForm, setShowForm] = useState(false);
   const [expAmount, setExpAmount] = useState('');
   const [expCategory, setExpCategory] = useState('');
@@ -29,6 +29,11 @@ export default function BudgetWidget() {
   const [showAddCat, setShowAddCat] = useState(false);
   const [newCatLabel, setNewCatLabel] = useState('');
   const [newCatPlanned, setNewCatPlanned] = useState('');
+  const [editingCatLabel, setEditingCatLabel] = useState<string | null>(null);
+  const [editLabelValue, setEditLabelValue] = useState('');
+  const [editingExp, setEditingExp] = useState<string | null>(null);
+  const [editExpAmount, setEditExpAmount] = useState('');
+  const [editExpMemo, setEditExpMemo] = useState('');
 
   const totalPlanned = budget.reduce((s, c) => s + c.planned, 0);
   const totalSpent = budget.reduce((s, c) => s + c.spent, 0);
@@ -105,7 +110,29 @@ export default function BudgetWidget() {
           <li key={cat.id} className="flex items-center justify-between group">
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${barColors[i % barColors.length]}`} />
-              <span className="text-xs text-[var(--text-secondary)]">{cat.label}</span>
+              {editingCatLabel === cat.id ? (
+                <input
+                  value={editLabelValue}
+                  onChange={(e) => setEditLabelValue(e.target.value)}
+                  onBlur={() => {
+                    if (editLabelValue.trim()) updateCategoryLabel(cat.id, editLabelValue.trim());
+                    setEditingCatLabel(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') { e.currentTarget.blur(); }
+                    if (e.key === 'Escape') setEditingCatLabel(null);
+                  }}
+                  className="text-xs text-[var(--text-secondary)] bg-transparent border-b border-[var(--accent)] focus:outline-none w-16"
+                  autoFocus
+                />
+              ) : (
+                <span
+                  className="text-xs text-[var(--text-secondary)] cursor-pointer hover:text-[var(--accent)] transition-colors"
+                  onDoubleClick={() => { setEditingCatLabel(cat.id); setEditLabelValue(cat.label); }}
+                >
+                  {cat.label}
+                </span>
+              )}
             </div>
             <div className="flex items-center gap-1.5">
               {cat.spent > 0 && (
@@ -203,8 +230,48 @@ export default function BudgetWidget() {
         <div className="mt-3 pt-3 border-t border-[var(--border-light)] space-y-1.5 max-h-32 overflow-y-auto scrollbar-hide">
           {[...expenses].reverse().map((exp) => {
             const cat = budget.find((b) => b.id === exp.categoryId);
+            if (editingExp === exp.id) {
+              return (
+                <form
+                  key={exp.id}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    const amt = parseInt(editExpAmount);
+                    if (amt > 0) updateExpense(exp.id, { amount: amt, memo: editExpMemo });
+                    setEditingExp(null);
+                  }}
+                  className="flex items-center gap-1.5 text-[11px]"
+                >
+                  <span className="text-[var(--text-muted)] flex-shrink-0">{cat?.label}</span>
+                  <input
+                    value={editExpMemo}
+                    onChange={(e) => setEditExpMemo(e.target.value)}
+                    placeholder="메모"
+                    className="flex-1 min-w-0 bg-transparent border-b border-[var(--border)] focus:outline-none focus:border-[var(--accent)] text-[var(--text-secondary)]"
+                  />
+                  <input
+                    type="number"
+                    value={editExpAmount}
+                    onChange={(e) => setEditExpAmount(e.target.value)}
+                    className="w-16 text-right bg-transparent border-b border-[var(--accent)] focus:outline-none font-medium text-[var(--text-primary)]"
+                    autoFocus
+                  />
+                  <span className="text-[var(--text-muted)]">원</span>
+                  <button type="submit" className="text-[var(--accent)]">✓</button>
+                  <button type="button" onClick={() => setEditingExp(null)} className="text-[var(--text-muted)]">✕</button>
+                </form>
+              );
+            }
             return (
-              <div key={exp.id} className="flex items-center justify-between text-[11px] group">
+              <div
+                key={exp.id}
+                className="flex items-center justify-between text-[11px] group cursor-pointer hover:bg-[var(--bg-secondary)]/50 rounded px-1 -mx-1 transition-colors"
+                onDoubleClick={() => {
+                  setEditingExp(exp.id);
+                  setEditExpAmount(exp.amount.toString());
+                  setEditExpMemo(exp.memo || '');
+                }}
+              >
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-[var(--text-muted)]">{cat?.label}</span>
                   {exp.memo && (
@@ -216,7 +283,7 @@ export default function BudgetWidget() {
                     {exp.amount.toLocaleString()}원
                   </span>
                   <button
-                    onClick={() => removeExpense(exp.id)}
+                    onClick={(e) => { e.stopPropagation(); removeExpense(exp.id); }}
                     className="w-4 h-4 rounded-full opacity-0 group-hover:opacity-100 text-[var(--text-muted)] hover:text-red-400 transition-all"
                     aria-label="삭제"
                   >
