@@ -41,6 +41,7 @@ const GlobeScene = dynamic(() => import('./GlobeScene'), {
 interface GlobeHeroProps {
   departureFlight: FlightInfo | null;
   returnFlight: FlightInfo | null;
+  transitFlights?: FlightInfo[];
 }
 
 /** 현지 시간 */
@@ -104,9 +105,11 @@ function useAirportWeather(airport?: string, city?: string): MiniWeather | null 
   return weather;
 }
 
-export default function GlobeHero({ departureFlight, returnFlight }: GlobeHeroProps) {
-  const hasFlight = !!(departureFlight || returnFlight);
-  const destCity = departureFlight?.arrival?.city || returnFlight?.departure?.city || '';
+export default function GlobeHero({ departureFlight, returnFlight, transitFlights = [] }: GlobeHeroProps) {
+  const hasFlight = !!(departureFlight || returnFlight || transitFlights.length > 0);
+  // 최종 도착지: 마지막 transit flight의 도착지 또는 출발편 도착지
+  const lastTransit = transitFlights.length > 0 ? transitFlights[transitFlights.length - 1] : null;
+  const destCity = lastTransit?.arrival?.city || departureFlight?.arrival?.city || returnFlight?.departure?.city || '';
   const depCity = departureFlight?.departure?.city || '';
   const depAirport = departureFlight?.departure?.airport || '';
   const arrAirport = departureFlight?.arrival?.airport || '';
@@ -186,14 +189,31 @@ export default function GlobeHero({ departureFlight, returnFlight }: GlobeHeroPr
             </>
           ) : (
             <p className="text-[13px] sm:text-[15px] font-semibold text-[var(--text-primary)] tracking-tight">
-              {destCity ? `${depCity} → ${destCity}` : '여행 준비 중'}
+              {(() => {
+                if (!depCity && !destCity) return '여행 준비 중';
+                // Build multi-city route: 인천 → 도쿄 → 방콕 → 인천
+                const cities: string[] = [];
+                if (depCity) cities.push(depCity);
+                if (departureFlight?.arrival?.city && departureFlight.arrival.city !== depCity) {
+                  cities.push(departureFlight.arrival.city);
+                }
+                for (const fl of transitFlights) {
+                  if (fl.arrival?.city && !cities.includes(fl.arrival.city)) {
+                    cities.push(fl.arrival.city);
+                  }
+                }
+                if (returnFlight?.arrival?.city && !cities.includes(returnFlight.arrival.city)) {
+                  cities.push(returnFlight.arrival.city);
+                }
+                return cities.join(' → ');
+              })()}
             </p>
           )}
         </div>
       </div>
 
       <Suspense fallback={null}>
-        <GlobeScene departureFlight={departureFlight} returnFlight={returnFlight} />
+        <GlobeScene departureFlight={departureFlight} returnFlight={returnFlight} transitFlights={transitFlights} />
       </Suspense>
     </div>
   );

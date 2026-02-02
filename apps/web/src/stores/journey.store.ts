@@ -62,8 +62,12 @@ interface JourneyStoreState {
   // ── Flight Actions ──
   departureFlight: FlightInfo | null;
   returnFlight: FlightInfo | null;
+  transitFlights: FlightInfo[];
   setDepartureFlight: (flight: FlightInfo) => void;
   setReturnFlight: (flight: FlightInfo) => void;
+  addTransitFlight: (flight: FlightInfo) => void;
+  removeTransitFlight: (index: number) => void;
+  updateTransitFlight: (index: number, flight: FlightInfo) => void;
   clearReturnFlight: () => void;
   clearFlights: () => void;
 
@@ -110,6 +114,7 @@ export const useJourneyStore = create<JourneyStoreState>()(
       destination: '',
       departureFlight: null,
       returnFlight: null,
+      transitFlights: [],
       accommodations: [],
 
       // ── Journey ──
@@ -236,10 +241,18 @@ export const useJourneyStore = create<JourneyStoreState>()(
           const arrItems = generateArrivalChecklist(flight.arrival.scheduledTime);
           return { returnFlight: flight, checklist: [...nonArrival, ...arrItems] };
         }),
+      addTransitFlight: (flight) =>
+        set((s) => ({ transitFlights: [...s.transitFlights, flight] })),
+      removeTransitFlight: (index) =>
+        set((s) => ({ transitFlights: s.transitFlights.filter((_, i) => i !== index) })),
+      updateTransitFlight: (index, flight) =>
+        set((s) => ({
+          transitFlights: s.transitFlights.map((f, i) => i === index ? flight : f),
+        })),
       clearReturnFlight: () =>
         set({ returnFlight: null }),
       clearFlights: () =>
-        set({ departureFlight: null, returnFlight: null, checklist: PREPARATION_CHECKLIST }),
+        set({ departureFlight: null, returnFlight: null, transitFlights: [], checklist: PREPARATION_CHECKLIST }),
 
       // ── Accommodation ──
       addAccommodation: (acc) =>
@@ -267,6 +280,7 @@ export const useJourneyStore = create<JourneyStoreState>()(
           destination: '',
           departureFlight: null,
           returnFlight: null,
+          transitFlights: [],
           accommodations: [],
         }),
     }),

@@ -10,6 +10,7 @@ import ReturnFlightCard from '@/components/bento/ReturnFlightCard';
 import QuickLinkCard from '@/components/bento/QuickLinkCard';
 import ItineraryWidget from '@/components/bento/ItineraryWidget';
 import AccommodationCard from '@/components/bento/AccommodationCard';
+import TransitFlightCard from '@/components/bento/TransitFlightCard';
 import CanvasSearch from '@/components/journey/CanvasSearch';
 import PhaseIndicator from '@/components/journey/PhaseIndicator';
 import ShareButton from '@/components/bento/ShareButton';
@@ -18,9 +19,9 @@ import GlobeHero from '@/components/3d/GlobeHero';
 import { useJourneyStore } from '@/stores/journey.store';
 
 export default function Dashboard() {
-  const { phase, departureFlight, returnFlight, reset } = useJourneyStore();
+  const { phase, departureFlight, returnFlight, transitFlights, reset } = useJourneyStore();
 
-  const hasFlight = !!(departureFlight || returnFlight);
+  const hasFlight = !!(departureFlight || returnFlight || transitFlights.length > 0);
 
   return (
     <main className="min-h-screen">
@@ -44,7 +45,7 @@ export default function Dashboard() {
 
       {/* 3D Globe Hero */}
       <div className="max-w-3xl mx-auto">
-        <GlobeHero departureFlight={departureFlight} returnFlight={returnFlight} />
+        <GlobeHero departureFlight={departureFlight} returnFlight={returnFlight} transitFlights={transitFlights} />
       </div>
 
       {/* NudgeBar — 컨텍스트 인식 다음 행동 넛징 */}
@@ -65,6 +66,13 @@ export default function Dashboard() {
             <div className="col-span-2 fade-in-up fade-in-delay-1">
               <ReturnFlightCard />
             </div>
+
+            {/* 경유/이동편 — 출발편이 등록된 경우에만 표시 */}
+            {departureFlight && (
+              <div id="transit-flight-card" className="col-span-2 md:col-span-4 fade-in-up fade-in-delay-1">
+                <TransitFlightCard />
+              </div>
+            )}
 
             {/* 숙소 */}
             <div id="accommodation-card" className="col-span-2 fade-in-up fade-in-delay-2">
@@ -112,6 +120,13 @@ export default function Dashboard() {
             <div className="col-span-2 fade-in-up fade-in-delay-1">
               <ReturnFlightCard />
             </div>
+
+            {/* 경유/이동편 */}
+            {(departureFlight || transitFlights.length > 0) && (
+              <div id="transit-flight-card" className="col-span-2 md:col-span-4 fade-in-up fade-in-delay-1">
+                <TransitFlightCard />
+              </div>
+            )}
 
             {/* 공항 현황 */}
             {hasFlight && (

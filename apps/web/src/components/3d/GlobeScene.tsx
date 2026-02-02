@@ -159,6 +159,7 @@ function MarkerPulse({
 interface GlobeSceneProps {
   departureFlight: FlightInfo | null;
   returnFlight: FlightInfo | null;
+  transitFlights?: FlightInfo[];
 }
 
 function resolveCoords(airport?: string): [number, number] | null {
@@ -169,30 +170,31 @@ function resolveCoords(airport?: string): [number, number] | null {
 export default function GlobeScene({
   departureFlight,
   returnFlight,
+  transitFlights = [],
 }: GlobeSceneProps) {
+  const allFlights = useMemo(() => {
+    const list: FlightInfo[] = [];
+    if (departureFlight) list.push(departureFlight);
+    list.push(...transitFlights);
+    if (returnFlight) list.push(returnFlight);
+    return list;
+  }, [departureFlight, returnFlight, transitFlights]);
+
   const routes = useMemo(() => {
     const result: { from: [number, number]; to: [number, number] }[] = [];
-
-    if (departureFlight) {
-      const from = resolveCoords(departureFlight.departure.airport);
-      const to = resolveCoords(departureFlight.arrival.airport);
+    for (const fl of allFlights) {
+      const from = resolveCoords(fl.departure.airport);
+      const to = resolveCoords(fl.arrival.airport);
       if (from && to) result.push({ from, to });
     }
-
-    if (returnFlight) {
-      const from = resolveCoords(returnFlight.departure.airport);
-      const to = resolveCoords(returnFlight.arrival.airport);
-      if (from && to) result.push({ from, to });
-    }
-
     return result;
-  }, [departureFlight, returnFlight]);
+  }, [allFlights]);
 
   const markers = useMemo(() => {
-    const m: { coords: [number, number]; type: 'dep' | 'arr' }[] = [];
+    const m: { coords: [number, number]; type: 'dep' | 'arr' | 'transit' }[] = [];
     const seen = new Set<string>();
 
-    const add = (airport: string | undefined, type: 'dep' | 'arr') => {
+    const add = (airport: string | undefined, type: 'dep' | 'arr' | 'transit') => {
       const c = resolveCoords(airport);
       if (c && !seen.has(airport!)) {
         seen.add(airport!);
@@ -202,15 +204,19 @@ export default function GlobeScene({
 
     if (departureFlight) {
       add(departureFlight.departure.airport, 'dep');
-      add(departureFlight.arrival.airport, 'arr');
+      add(departureFlight.arrival.airport, transitFlights.length > 0 ? 'transit' : 'arr');
+    }
+    for (const fl of transitFlights) {
+      add(fl.departure.airport, 'transit');
+      add(fl.arrival.airport, 'transit');
     }
     if (returnFlight) {
-      add(returnFlight.departure.airport, 'dep');
+      add(returnFlight.departure.airport, 'transit');
       add(returnFlight.arrival.airport, 'arr');
     }
 
     return m;
-  }, [departureFlight, returnFlight]);
+  }, [departureFlight, returnFlight, transitFlights]);
 
   const hasRoute = routes.length > 0;
 
@@ -237,11 +243,11 @@ export default function GlobeScene({
           <group key={i}>
             <AirportMarker
               coords={m.coords}
-              color={m.type === 'dep' ? '#F2C78C' : '#8BB5A5'}
+              color={m.type === 'dep' ? '#F2C78C' : m.type === 'transit' ? '#D4A574' : '#8BB5A5'}
             />
             <MarkerPulse
               coords={m.coords}
-              color={m.type === 'dep' ? '#F2C78C' : '#8BB5A5'}
+              color={m.type === 'dep' ? '#F2C78C' : m.type === 'transit' ? '#D4A574' : '#8BB5A5'}
             />
           </group>
         ))}
