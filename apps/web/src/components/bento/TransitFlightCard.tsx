@@ -88,9 +88,15 @@ export default function TransitFlightCard() {
     const dCode = depAirport.toUpperCase();
     const aCode = arrAirport.toUpperCase();
     const depDateTime = depTime ? `${flightDate}T${depTime}:00` : `${flightDate}T00:00:00`;
-    const arrDateTime = arrTime ? `${flightDate}T${arrTime}:00` : `${flightDate}T00:00:00`;
+    let arrDateTime = arrTime ? `${flightDate}T${arrTime}:00` : `${flightDate}T00:00:00`;
     const depMs = new Date(depDateTime).getTime();
-    const arrMs = new Date(arrDateTime).getTime();
+    let arrMs = new Date(arrDateTime).getTime();
+    // 야간 비행: 도착 시각이 출발보다 이르면 다음날로 처리
+    if (arrTime && depTime && arrMs <= depMs) {
+      const nextDay = new Date(new Date(flightDate).getTime() + 86400000).toISOString().split('T')[0];
+      arrDateTime = `${nextDay}T${arrTime}:00`;
+      arrMs = new Date(arrDateTime).getTime();
+    }
     const duration = depMs && arrMs && arrMs > depMs ? Math.round((arrMs - depMs) / 60000) : 0;
     const airlineCode = flightInput.trim().toUpperCase().slice(0, 2);
 

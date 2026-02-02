@@ -65,6 +65,14 @@ function formatDuration(min: number): string {
   return h > 0 ? `${h}h ${m > 0 ? `${m}m` : ''}` : `${m}m`;
 }
 
+function isNextDay(depIso: string, arrIso: string): boolean {
+  try {
+    const d = new Date(depIso).toISOString().split('T')[0];
+    const a = new Date(arrIso).toISOString().split('T')[0];
+    return a > d;
+  } catch { return false; }
+}
+
 function getCountdown(iso: string): string | null {
   const diff = new Date(iso).getTime() - Date.now();
   if (diff <= 0) return null;
@@ -108,10 +116,16 @@ export default function ReturnFlightCard() {
     const depCode = manualDepAirport.toUpperCase();
     const arrCode = manualArrAirport.toUpperCase();
     const depDateTime = manualDepTime ? `${retDate}T${manualDepTime}:00` : `${retDate}T00:00:00`;
-    const arrDateTime = manualArrTime ? `${retDate}T${manualArrTime}:00` : `${retDate}T00:00:00`;
+    let arrDateTime = manualArrTime ? `${retDate}T${manualArrTime}:00` : `${retDate}T00:00:00`;
 
+    // 야간 비행: 도착 시각이 출발보다 이르면 다음날로 처리
     const depMs = new Date(depDateTime).getTime();
-    const arrMs = new Date(arrDateTime).getTime();
+    let arrMs = new Date(arrDateTime).getTime();
+    if (manualArrTime && manualDepTime && arrMs <= depMs) {
+      const nextDay = new Date(new Date(retDate).getTime() + 86400000).toISOString().split('T')[0];
+      arrDateTime = `${nextDay}T${manualArrTime}:00`;
+      arrMs = new Date(arrDateTime).getTime();
+    }
     const duration = depMs && arrMs && arrMs > depMs ? Math.round((arrMs - depMs) / 60000) : 0;
 
     const airlineCode = retInput.trim().toUpperCase().slice(0, 2);
@@ -386,7 +400,12 @@ export default function ReturnFlightCard() {
           </div>
 
           <div className="text-center min-w-0">
-            <p className="text-lg bento-value">{formatTime(ret.arrival.scheduledTime)}</p>
+            <p className="text-lg bento-value">
+              {formatTime(ret.arrival.scheduledTime)}
+              {isNextDay(ret.departure.scheduledTime, ret.arrival.scheduledTime) && (
+                <span className="text-[9px] text-[var(--accent)] align-super ml-0.5">+1</span>
+              )}
+            </p>
             <p className="text-[11px] text-[var(--text-secondary)]">{ret.arrival.airport}</p>
             <p className="text-[10px] text-[var(--text-muted)]">{ret.arrival.city}</p>
           </div>
