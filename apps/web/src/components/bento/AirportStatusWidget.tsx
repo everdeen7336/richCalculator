@@ -6,7 +6,7 @@ import { useParking } from '@/hooks/useParking';
 import BentoCard from './BentoCard';
 
 function getLevel(value: number, peak: number) {
-  if (peak === 0) return { label: '정보없음', color: 'text-gray-400', bg: 'bg-gray-100' };
+  if (peak === 0) return { label: '준비 중', color: 'text-gray-400', bg: 'bg-gray-100' };
   const r = value / peak;
   if (r <= 0.3) return { label: '한산', color: 'text-emerald-600', bg: 'bg-emerald-50' };
   if (r <= 0.55) return { label: '보통', color: 'text-amber-600', bg: 'bg-amber-50' };

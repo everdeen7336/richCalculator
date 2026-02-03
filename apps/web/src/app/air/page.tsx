@@ -7,7 +7,7 @@ import { useParking } from '@/hooks/useParking';
 
 /** 혼잡 레벨 (간략) */
 function getQuickLevel(value: number, peak: number): { label: string; emoji: string; color: string } {
-  if (peak === 0) return { label: '정보없음', emoji: '⏳', color: 'text-gray-400' };
+  if (peak === 0) return { label: '준비 중', emoji: '⏳', color: 'text-gray-400' };
   const ratio = value / peak;
   if (ratio <= 0.3) return { label: '한산', emoji: '😊', color: 'text-green-600' };
   if (ratio <= 0.55) return { label: '보통', emoji: '🙂', color: 'text-yellow-600' };

@@ -33,7 +33,7 @@ function isToday(dateStr: string): boolean {
 }
 
 function getCrowdLevel(value: number, peak: number) {
-  if (peak === 0) return { label: '정보없음', emoji: '⏳', color: 'text-gray-400', bgColor: 'bg-gray-50', advice: '데이터가 아직 없습니다' };
+  if (peak === 0) return { label: '준비 중', emoji: '⏳', color: 'text-gray-400', bgColor: 'bg-gray-50', advice: '곧 데이터가 준비돼요' };
   const ratio = value / peak;
   if (ratio <= 0.3) return { label: '한산', emoji: '😊', color: 'text-green-700', bgColor: 'bg-green-50', advice: '입국심사가 빠르게 진행될 예정입니다' };
   if (ratio <= 0.55) return { label: '보통', emoji: '🙂', color: 'text-yellow-700', bgColor: 'bg-yellow-50', advice: '평소 수준의 대기가 예상됩니다' };

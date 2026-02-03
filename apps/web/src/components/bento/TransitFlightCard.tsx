@@ -131,7 +131,7 @@ export default function TransitFlightCard() {
       addTransitFlight(flight);
       resetForm();
     } catch {
-      setError('네트워크 오류가 발생했어요');
+      setError('잠시 후 다시 시도해주세요');
     }
     setLoading(false);
   }, [flightInput, flightDate, addTransitFlight]);
@@ -256,7 +256,7 @@ export default function TransitFlightCard() {
 
           {showManualFields && (
             <p className="text-[10px] text-[#B8863A]">
-              {forceManual ? '수동으로 입력합니다' : '과거 날짜는 수동 입력합니다'}
+              {forceManual ? '직접 입력할 수 있어요' : '과거 날짜는 직접 입력할 수 있어요'}
             </p>
           )}
 
