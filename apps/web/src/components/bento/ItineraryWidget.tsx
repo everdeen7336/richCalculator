@@ -146,6 +146,8 @@ export default function ItineraryWidget() {
   const [editAddress, setEditAddress] = useState('');
 
   const [collapsedDays, setCollapsedDays] = useState<Set<number>>(new Set());
+  const [inlineDayAdd, setInlineDayAdd] = useState<number | null>(null);
+  const [inlineInput, setInlineInput] = useState('');
 
   const days = useMemo(
     () => groupByDay(items, tripDays, departureDate),
@@ -245,6 +247,25 @@ export default function ItineraryWidget() {
     setEditingId(null);
   }, [editingId, editName, editCategory, editMins, editDay, editTime, editMemo, editAddress, updateItem, updateItemPlace]);
 
+  /* ── DAY 인라인 추가 ── */
+  const handleInlineAdd = useCallback((day: number) => {
+    const name = inlineInput.trim();
+    if (!name) { setInlineDayAdd(null); return; }
+    const mood = findMood(name);
+    if (mood) { setMoodHint(mood); setTimeout(() => setMoodHint(null), 3000); }
+    const city = detectDestination(name);
+    if (city && city !== destination) setDestination(city);
+    const place: Place = {
+      id: `pl-${Date.now()}`, name, category: 'attraction', estimatedMinutes: 60,
+      moodKeyword: mood?.mood, quietHours: mood?.quiet,
+    };
+    const item: JourneyItem = { id: `it-${Date.now()}`, place, order: items.length, day };
+    addItem(item);
+    GA.itineraryAdded(name);
+    setInlineInput('');
+    setInlineDayAdd(null);
+  }, [inlineInput, destination, setDestination, items.length, addItem]);
+
   /* ── DAY 접기/펼치기 ── */
   const toggleDay = (day: number) => {
     setCollapsedDays((prev) => {
@@ -326,35 +347,45 @@ export default function ItineraryWidget() {
 
       {/* 일별 타임라인 */}
       {days.length > 0 && (
-        <div className="space-y-3">
+        <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1 scrollbar-thin">
           {days.map((dayGroup) => {
             const collapsed = collapsedDays.has(dayGroup.day);
             return (
               <div key={dayGroup.day}>
-                {/* Day 헤더 — 클릭으로 접기/펼치기 + 드롭 존 */}
-                <button
-                  onClick={() => toggleDay(dayGroup.day)}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDragEnter={() => handleDayDragEnter(dayGroup.day)}
-                  className={`flex items-center gap-2 mb-2 w-full text-left group rounded-lg px-1 py-0.5 -mx-1 transition-all ${dropTargetDay === dayGroup.day && draggingId ? 'bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/40' : ''}`}
+                {/* Day 헤더 행 */}
+                <div
+                  className={`flex items-center gap-2 mb-2 group rounded-lg px-1 py-0.5 -mx-1 transition-all ${dropTargetDay === dayGroup.day && draggingId ? 'bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/40' : ''}`}
                 >
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors ${dropTargetDay === dayGroup.day && draggingId ? 'text-white bg-[var(--accent)]' : 'text-[var(--accent)] bg-[var(--accent)]/8'}`}>
-                    DAY {dayGroup.day}
-                  </span>
-                  <span className="text-[10px] text-[var(--text-muted)]">{dayGroup.date}</span>
-                  {dropTargetDay === dayGroup.day && draggingId && (
-                    <span className="text-[9px] text-[var(--accent)] font-medium">여기에 놓기</span>
-                  )}
-                  {dayGroup.items.length > 0 && !(dropTargetDay === dayGroup.day && draggingId) && (
-                    <span className="text-[9px] text-[var(--text-muted)] ml-auto">
-                      {dayGroup.items.length}곳 · {formatMins(dayGroup.totalMins)}
-                      {dayGroup.totalMins > 480 && ' ⚠️'}
+                  <button
+                    onClick={() => toggleDay(dayGroup.day)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDragEnter={() => handleDayDragEnter(dayGroup.day)}
+                    className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                  >
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${dropTargetDay === dayGroup.day && draggingId ? 'text-white bg-[var(--accent)]' : 'text-[var(--accent)] bg-[var(--accent)]/8'}`}>
+                      DAY {dayGroup.day}
                     </span>
-                  )}
-                  <span className="text-[9px] text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">
-                    {collapsed ? '▼' : '▲'}
-                  </span>
-                </button>
+                    <span className="text-[10px] text-[var(--text-muted)]">{dayGroup.date}</span>
+                    {dropTargetDay === dayGroup.day && draggingId && (
+                      <span className="text-[9px] text-[var(--accent)] font-medium">여기에 놓기</span>
+                    )}
+                    {dayGroup.items.length > 0 && !(dropTargetDay === dayGroup.day && draggingId) && (
+                      <span className="text-[9px] text-[var(--text-muted)] ml-auto">
+                        {dayGroup.items.length}곳 · {formatMins(dayGroup.totalMins)}
+                        {dayGroup.totalMins > 480 && ' ⚠️'}
+                      </span>
+                    )}
+                    <span className="text-[9px] text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      {collapsed ? '▼' : '▲'}
+                    </span>
+                  </button>
+                  {/* DAY 인라인 추가 버튼 */}
+                  <button
+                    onClick={() => { setInlineDayAdd(inlineDayAdd === dayGroup.day ? null : dayGroup.day); setInlineInput(''); }}
+                    className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 px-0.5"
+                    title={`DAY ${dayGroup.day}에 장소 추가`}
+                  >＋</button>
+                </div>
 
                 {/* 장소 목록 */}
                 {!collapsed && (
@@ -508,8 +539,29 @@ export default function ItineraryWidget() {
                     })}
 
                     {/* 이 DAY에 빈 상태 */}
-                    {dayGroup.items.length === 0 && (
+                    {dayGroup.items.length === 0 && inlineDayAdd !== dayGroup.day && (
                       <li className="text-[10px] text-[var(--text-muted)] italic py-1 ml-6">장소를 추가해보세요</li>
+                    )}
+
+                    {/* DAY 인라인 입력 */}
+                    {inlineDayAdd === dayGroup.day && (
+                      <li>
+                        <form
+                          onSubmit={(e) => { e.preventDefault(); handleInlineAdd(dayGroup.day); }}
+                          className="flex items-center gap-1.5 ml-5 mt-1"
+                        >
+                          <input
+                            type="text"
+                            value={inlineInput}
+                            onChange={(e) => setInlineInput(e.target.value)}
+                            placeholder={`DAY ${dayGroup.day}에 추가할 장소`}
+                            className="flex-1 bg-transparent text-xs text-[var(--text-primary)] border-b border-[var(--accent)] pb-0.5 focus:outline-none placeholder:text-[var(--text-muted)]"
+                            autoFocus
+                          />
+                          <button type="submit" className="text-[10px] text-[var(--accent)] font-medium px-1">추가</button>
+                          <button type="button" onClick={() => setInlineDayAdd(null)} className="text-[10px] text-[var(--text-muted)] px-1">취소</button>
+                        </form>
+                      </li>
                     )}
                   </ul>
                 )}
