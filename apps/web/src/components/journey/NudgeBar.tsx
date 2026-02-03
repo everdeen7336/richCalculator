@@ -108,8 +108,8 @@ const NUDGE_MAP: NudgeConfig[] = [
   },
   {
     stage: 'ontrip',
-    completedMessage: '즐거운 여행 되세요!',
-    nextMessage: '',
+    completedMessage: '',
+    nextMessage: '즐거운 여행 되세요! 🎉',
     ctaLabel: '오늘 일정 보기',
     ctaAction: '#itinerary-widget',
   },
