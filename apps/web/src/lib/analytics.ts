@@ -40,8 +40,8 @@ export function trackEvent({ action, category, label, value }: GTagEvent): void 
 
 export const GA = {
   /** 항공편 등록 (가설 2) */
-  flightRegistered: (source: 'api' | 'manual', flightNumber: string) =>
-    trackEvent({ action: 'flight_registered', category: 'engagement', label: `${source}:${flightNumber}` }),
+  flightRegistered: (source: 'api' | 'manual' | 'simple', flightNumberOrDest: string) =>
+    trackEvent({ action: 'flight_registered', category: 'engagement', label: `${source}:${flightNumberOrDest}` }),
 
   /** 귀국편 등록 */
   returnFlightRegistered: (source: 'api' | 'manual') =>

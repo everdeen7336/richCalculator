@@ -39,6 +39,25 @@ const AIRPORT_CITY: Record<string, string> = {
   'DXB': '두바이', 'DOH': '도하',
 };
 
+/** 인기 목적지 (자동완성용) */
+const POPULAR_DESTINATIONS = [
+  { name: '도쿄', code: 'NRT', flag: '🇯🇵' },
+  { name: '오사카', code: 'KIX', flag: '🇯🇵' },
+  { name: '후쿠오카', code: 'FUK', flag: '🇯🇵' },
+  { name: '방콕', code: 'BKK', flag: '🇹🇭' },
+  { name: '싱가포르', code: 'SIN', flag: '🇸🇬' },
+  { name: '홍콩', code: 'HKG', flag: '🇭🇰' },
+  { name: '타이베이', code: 'TPE', flag: '🇹🇼' },
+  { name: '다낭', code: 'DAD', flag: '🇻🇳' },
+  { name: '발리', code: 'DPS', flag: '🇮🇩' },
+  { name: '세부', code: 'CEB', flag: '🇵🇭' },
+  { name: '괌', code: 'GUM', flag: '🇺🇸' },
+  { name: '하와이', code: 'HNL', flag: '🇺🇸' },
+  { name: '파리', code: 'CDG', flag: '🇫🇷' },
+  { name: '런던', code: 'LHR', flag: '🇬🇧' },
+  { name: '뉴욕', code: 'JFK', flag: '🇺🇸' },
+];
+
 /** 상태별 스타일 */
 const STATUS_STYLES: Record<string, { bg: string; text: string }> = {
   scheduled: { bg: 'bg-[var(--border-light)]', text: 'text-[var(--text-secondary)]' },
@@ -99,6 +118,11 @@ export default function FlightCard() {
   const [suggestion, setSuggestion] = useState('');
   const [countdown, setCountdown] = useState<string | null>(null);
 
+  // 입력 모드: 'simple' (날짜+목적지) vs 'detail' (날짜+편명)
+  const [inputMode, setInputMode] = useState<'simple' | 'detail'>('simple');
+  const [destInput, setDestInput] = useState('');
+  const [showDestSuggestions, setShowDestSuggestions] = useState(false);
+
   // 과거 날짜 수동 입력 상태
   const [manualDepAirport, setManualDepAirport] = useState('');
   const [manualDepTime, setManualDepTime] = useState('');
@@ -113,6 +137,14 @@ export default function FlightCard() {
   // 편명에서 항공사 자동 유추
   const derivedAirline = depInput.length >= 2 ? (AIRLINES[depInput.slice(0, 2)] || '') : '';
 
+  // 목적지 필터링
+  const filteredDestinations = destInput.trim()
+    ? POPULAR_DESTINATIONS.filter((d) =>
+        d.name.toLowerCase().includes(destInput.toLowerCase()) ||
+        d.code.toLowerCase().includes(destInput.toLowerCase())
+      )
+    : POPULAR_DESTINATIONS;
+
   // 카운트다운 업데이트
   useEffect(() => {
     if (!departureFlight) { setCountdown(null); return; }
@@ -121,6 +153,47 @@ export default function FlightCard() {
     const id = setInterval(update, 60000);
     return () => clearInterval(id);
   }, [departureFlight]);
+
+  // 간편 등록: 날짜 + 목적지만으로 시작
+  const registerSimpleFlight = useCallback(() => {
+    if (!depDate || !destInput.trim()) return;
+
+    // 목적지에서 공항 코드 찾기
+    const dest = POPULAR_DESTINATIONS.find(
+      (d) => d.name === destInput || d.code.toUpperCase() === destInput.toUpperCase()
+    );
+    const destCity = dest?.name || destInput.trim();
+    const destCode = dest?.code || '';
+
+    // 가상 항공편 생성 (편명 없이)
+    const flight: FlightInfo = {
+      flightNumber: '', // 편명 미정
+      airline: '',
+      departure: {
+        airport: 'ICN',
+        city: '인천',
+        scheduledTime: `${depDate}T00:00:00`,
+        terminal: undefined,
+        gate: undefined,
+      },
+      arrival: {
+        airport: destCode,
+        city: destCity,
+        scheduledTime: `${depDate}T00:00:00`,
+        terminal: undefined,
+      },
+      status: 'scheduled',
+      durationMinutes: 0,
+      source: 'manual',
+    };
+
+    setDepartureFlight(flight);
+    setDestination(destCity);
+    setDepartureDate(depDate);
+    GA.flightRegistered('simple', destCity);
+    setDestInput('');
+    setDepDate('');
+  }, [depDate, destInput, setDepartureFlight, setDestination, setDepartureDate]);
 
   const registerManualFlight = useCallback(() => {
     if (!depInput.trim() || !depDate) return;
@@ -202,163 +275,264 @@ export default function FlightCard() {
   if (!departureFlight) {
     return (
       <BentoCard>
-        <p className="bento-label mb-3">항공편</p>
-        <p className="text-xs text-[var(--text-muted)] mb-4">
-          편명과 출발일을 입력하면 시간표가 자동으로 설정돼요
+        <p className="bento-label mb-1">여행 시작하기</p>
+        <p className="text-[11px] text-[var(--text-muted)] mb-4">
+          {inputMode === 'simple' ? '날짜와 목적지만 입력하면 돼요' : '편명을 입력하면 시간표가 자동 설정돼요'}
         </p>
 
-        <form onSubmit={(e) => { e.preventDefault(); showManualFields ? registerManualFlight() : searchFlight(); }} className="space-y-3">
-          {/* 1. 출발 날짜 (먼저 선택) */}
-          <div className="relative">
-            {!depDate && (
-              <span className="absolute left-0 top-0 text-xs text-[var(--text-muted)] pointer-events-none">
-                출발 날짜 선택
-              </span>
-            )}
-            <input
-              type="date"
-              value={depDate}
-              onChange={(e) => { setDepDate(e.target.value); if (e.target.value) setDepartureDate(e.target.value); }}
-              className={`
-                w-full bg-transparent text-xs text-[var(--text-primary)]
-                border-b border-[var(--border)] pb-1.5
-                focus:outline-none focus:border-[var(--accent)]
-                transition-colors duration-300
-                ${!depDate ? 'text-transparent' : ''}
-              `}
-            />
-          </div>
+        {/* 모드 전환 탭 */}
+        <div className="flex gap-1 mb-4 p-0.5 bg-[var(--border-light)] rounded-lg">
+          <button
+            type="button"
+            onClick={() => setInputMode('simple')}
+            className={`flex-1 text-[11px] py-1.5 rounded-md transition-all ${
+              inputMode === 'simple'
+                ? 'bg-white text-[var(--text-primary)] font-medium shadow-sm'
+                : 'text-[var(--text-muted)]'
+            }`}
+          >
+            간편 등록
+          </button>
+          <button
+            type="button"
+            onClick={() => setInputMode('detail')}
+            className={`flex-1 text-[11px] py-1.5 rounded-md transition-all ${
+              inputMode === 'detail'
+                ? 'bg-white text-[var(--text-primary)] font-medium shadow-sm'
+                : 'text-[var(--text-muted)]'
+            }`}
+          >
+            편명으로 등록
+          </button>
+        </div>
 
-          {showManualFields && (
-            <p className="text-[10px] text-[#B8863A]">
-              {forceManual ? '직접 입력할 수 있어요' : '과거 날짜는 직접 입력할 수 있어요'}
-            </p>
-          )}
+        {/* ── 간편 모드: 날짜 + 목적지 ── */}
+        {inputMode === 'simple' && (
+          <form onSubmit={(e) => { e.preventDefault(); registerSimpleFlight(); }} className="space-y-3">
+            {/* 1. 출발 날짜 */}
+            <div>
+              <label className="text-[10px] text-[var(--text-muted)] mb-1 block">출발일</label>
+              <input
+                type="date"
+                value={depDate}
+                onChange={(e) => setDepDate(e.target.value)}
+                className="
+                  w-full bg-transparent text-sm text-[var(--text-primary)]
+                  border-b border-[var(--border)] pb-1.5
+                  focus:outline-none focus:border-[var(--accent)]
+                  transition-colors
+                "
+              />
+            </div>
 
-          {/* 2. 편명 + 조회/등록 버튼 */}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={depInput}
-              onChange={(e) => setDepInput(e.target.value.toUpperCase())}
-              placeholder="편명 (예: KE432)"
-              maxLength={7}
-              className="
-                flex-1 bg-transparent text-sm text-[var(--text-primary)]
-                placeholder:text-[var(--text-muted)]
-                border-b border-[var(--border)] pb-1.5
-                focus:outline-none focus:border-[var(--accent)]
-                transition-colors duration-300 uppercase tracking-wider
-              "
-            />
+            {/* 2. 목적지 */}
+            <div className="relative">
+              <label className="text-[10px] text-[var(--text-muted)] mb-1 block">목적지</label>
+              <input
+                type="text"
+                value={destInput}
+                onChange={(e) => { setDestInput(e.target.value); setShowDestSuggestions(true); }}
+                onFocus={() => setShowDestSuggestions(true)}
+                placeholder="예: 도쿄, 방콕, 파리..."
+                className="
+                  w-full bg-transparent text-sm text-[var(--text-primary)]
+                  placeholder:text-[var(--text-muted)]
+                  border-b border-[var(--border)] pb-1.5
+                  focus:outline-none focus:border-[var(--accent)]
+                  transition-colors
+                "
+              />
+
+              {/* 목적지 추천 */}
+              {showDestSuggestions && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl shadow-lg z-10 max-h-48 overflow-y-auto">
+                  {filteredDestinations.slice(0, 8).map((dest) => (
+                    <button
+                      key={dest.code}
+                      type="button"
+                      onClick={() => {
+                        setDestInput(dest.name);
+                        setShowDestSuggestions(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-[var(--border-light)] transition-colors"
+                    >
+                      <span className="text-sm">{dest.flag}</span>
+                      <span className="text-[12px] text-[var(--text-primary)]">{dest.name}</span>
+                      <span className="text-[10px] text-[var(--text-muted)]">{dest.code}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 3. 등록 버튼 */}
             <button
               type="submit"
-              disabled={loading || (showManualFields && !depInput.trim())}
+              disabled={!depDate || !destInput.trim()}
               className="
-                text-[11px] px-3 py-1.5 rounded-full
-                bg-[var(--text-primary)] text-white
-                hover:bg-[var(--accent)] transition-colors
-                disabled:opacity-50
+                w-full py-2.5 rounded-xl text-[12px] font-medium
+                bg-[var(--accent)] text-white
+                hover:bg-[var(--accent)]/90 transition-colors
+                disabled:opacity-40 disabled:cursor-not-allowed
               "
             >
-              {showManualFields ? '등록' : loading ? '조회 중...' : '조회'}
+              여행 시작하기 ✈️
             </button>
-            {editBackup && (
-              <button
-                type="button"
-                onClick={() => {
-                  setDepartureFlight(editBackup);
-                  setEditBackup(null);
-                  setForceManual(false);
-                  setDepInput('');
-                  setDepDate('');
-                  setManualDepAirport('');
-                  setManualArrAirport('');
-                  setManualDepTime('');
-                  setManualArrTime('');
-                }}
-                className="text-[11px] px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:text-[#C4564A] hover:border-[#C4564A] transition-colors"
-              >
-                취소
-              </button>
-            )}
-          </div>
 
-          {/* 3. 과거 날짜: 수동 입력 필드 (간소화) */}
-          {showManualFields && (
-            <div className="space-y-2 pt-1 border-t border-[var(--border)]">
-              {derivedAirline && (
-                <p className="text-[10px] text-[var(--text-secondary)]">{derivedAirline}</p>
-              )}
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={manualDepAirport}
-                  onChange={(e) => setManualDepAirport(e.target.value.toUpperCase())}
-                  placeholder="출발 (ICN)"
-                  maxLength={3}
-                  className="
-                    w-16 bg-transparent text-xs text-[var(--text-primary)]
-                    placeholder:text-[var(--text-muted)]
-                    border-b border-[var(--border)] pb-1
-                    focus:outline-none focus:border-[var(--accent)]
-                    transition-colors duration-300 uppercase text-center
-                  "
-                />
-                {AIRPORT_CITY[manualDepAirport.toUpperCase()] && (
-                  <span className="text-[10px] text-[var(--text-muted)]">{AIRPORT_CITY[manualDepAirport.toUpperCase()]}</span>
-                )}
-                <input
-                  type="time"
-                  value={manualDepTime}
-                  onChange={(e) => setManualDepTime(e.target.value)}
-                  className="
-                    flex-1 bg-transparent text-xs text-[var(--text-primary)]
-                    border-b border-[var(--border)] pb-1
-                    focus:outline-none focus:border-[var(--accent)]
-                    transition-colors duration-300
-                  "
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  value={manualArrAirport}
-                  onChange={(e) => setManualArrAirport(e.target.value.toUpperCase())}
-                  placeholder="도착 (NRT)"
-                  maxLength={3}
-                  className="
-                    w-16 bg-transparent text-xs text-[var(--text-primary)]
-                    placeholder:text-[var(--text-muted)]
-                    border-b border-[var(--border)] pb-1
-                    focus:outline-none focus:border-[var(--accent)]
-                    transition-colors duration-300 uppercase text-center
-                  "
-                />
-                {AIRPORT_CITY[manualArrAirport.toUpperCase()] && (
-                  <span className="text-[10px] text-[var(--text-muted)]">{AIRPORT_CITY[manualArrAirport.toUpperCase()]}</span>
-                )}
-                <input
-                  type="time"
-                  value={manualArrTime}
-                  onChange={(e) => setManualArrTime(e.target.value)}
-                  className="
-                    flex-1 bg-transparent text-xs text-[var(--text-primary)]
-                    border-b border-[var(--border)] pb-1
-                    focus:outline-none focus:border-[var(--accent)]
-                    transition-colors duration-300
-                  "
-                />
-              </div>
+            <p className="text-[10px] text-[var(--text-muted)] text-center">
+              편명은 나중에 추가할 수 있어요
+            </p>
+          </form>
+        )}
+
+        {/* ── 상세 모드: 날짜 + 편명 (API 조회) ── */}
+        {inputMode === 'detail' && (
+          <form onSubmit={(e) => { e.preventDefault(); showManualFields ? registerManualFlight() : searchFlight(); }} className="space-y-3">
+            {/* 1. 출발 날짜 */}
+            <div>
+              <label className="text-[10px] text-[var(--text-muted)] mb-1 block">출발일</label>
+              <input
+                type="date"
+                value={depDate}
+                onChange={(e) => { setDepDate(e.target.value); if (e.target.value) setDepartureDate(e.target.value); }}
+                className="
+                  w-full bg-transparent text-sm text-[var(--text-primary)]
+                  border-b border-[var(--border)] pb-1.5
+                  focus:outline-none focus:border-[var(--accent)]
+                  transition-colors
+                "
+              />
             </div>
-          )}
-        </form>
+
+            {showManualFields && (
+              <p className="text-[10px] text-[#B8863A]">
+                {forceManual ? '직접 입력할 수 있어요' : '과거 날짜는 직접 입력할 수 있어요'}
+              </p>
+            )}
+
+            {/* 2. 편명 + 조회/등록 버튼 */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={depInput}
+                onChange={(e) => setDepInput(e.target.value.toUpperCase())}
+                placeholder="편명 (예: KE432)"
+                maxLength={7}
+                className="
+                  flex-1 bg-transparent text-sm text-[var(--text-primary)]
+                  placeholder:text-[var(--text-muted)]
+                  border-b border-[var(--border)] pb-1.5
+                  focus:outline-none focus:border-[var(--accent)]
+                  transition-colors uppercase tracking-wider
+                "
+              />
+              <button
+                type="submit"
+                disabled={loading || (showManualFields && !depInput.trim())}
+                className="
+                  text-[11px] px-3 py-1.5 rounded-full
+                  bg-[var(--text-primary)] text-white
+                  hover:bg-[var(--accent)] transition-colors
+                  disabled:opacity-50
+                "
+              >
+                {showManualFields ? '등록' : loading ? '조회 중...' : '조회'}
+              </button>
+              {editBackup && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDepartureFlight(editBackup);
+                    setEditBackup(null);
+                    setForceManual(false);
+                    setDepInput('');
+                    setDepDate('');
+                    setManualDepAirport('');
+                    setManualArrAirport('');
+                    setManualDepTime('');
+                    setManualArrTime('');
+                  }}
+                  className="text-[11px] px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:text-[#C4564A] hover:border-[#C4564A] transition-colors"
+                >
+                  취소
+                </button>
+              )}
+            </div>
+
+            {/* 3. 과거 날짜: 수동 입력 필드 */}
+            {showManualFields && (
+              <div className="space-y-2 pt-1 border-t border-[var(--border)]">
+                {derivedAirline && (
+                  <p className="text-[10px] text-[var(--text-secondary)]">{derivedAirline}</p>
+                )}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={manualDepAirport}
+                    onChange={(e) => setManualDepAirport(e.target.value.toUpperCase())}
+                    placeholder="출발 (ICN)"
+                    maxLength={3}
+                    className="
+                      w-16 bg-transparent text-xs text-[var(--text-primary)]
+                      placeholder:text-[var(--text-muted)]
+                      border-b border-[var(--border)] pb-1
+                      focus:outline-none focus:border-[var(--accent)]
+                      uppercase text-center
+                    "
+                  />
+                  {AIRPORT_CITY[manualDepAirport.toUpperCase()] && (
+                    <span className="text-[10px] text-[var(--text-muted)]">{AIRPORT_CITY[manualDepAirport.toUpperCase()]}</span>
+                  )}
+                  <input
+                    type="time"
+                    value={manualDepTime}
+                    onChange={(e) => setManualDepTime(e.target.value)}
+                    className="
+                      flex-1 bg-transparent text-xs text-[var(--text-primary)]
+                      border-b border-[var(--border)] pb-1
+                      focus:outline-none focus:border-[var(--accent)]
+                    "
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={manualArrAirport}
+                    onChange={(e) => setManualArrAirport(e.target.value.toUpperCase())}
+                    placeholder="도착 (NRT)"
+                    maxLength={3}
+                    className="
+                      w-16 bg-transparent text-xs text-[var(--text-primary)]
+                      placeholder:text-[var(--text-muted)]
+                      border-b border-[var(--border)] pb-1
+                      focus:outline-none focus:border-[var(--accent)]
+                      uppercase text-center
+                    "
+                  />
+                  {AIRPORT_CITY[manualArrAirport.toUpperCase()] && (
+                    <span className="text-[10px] text-[var(--text-muted)]">{AIRPORT_CITY[manualArrAirport.toUpperCase()]}</span>
+                  )}
+                  <input
+                    type="time"
+                    value={manualArrTime}
+                    onChange={(e) => setManualArrTime(e.target.value)}
+                    className="
+                      flex-1 bg-transparent text-xs text-[var(--text-primary)]
+                      border-b border-[var(--border)] pb-1
+                      focus:outline-none focus:border-[var(--accent)]
+                    "
+                  />
+                </div>
+              </div>
+            )}
+          </form>
+        )}
 
         {error && (
           <div className="mt-2">
             <p className="text-[11px] text-[#C4564A]">{error}</p>
             {suggestion && <p className="text-[10px] text-[var(--text-muted)] mt-1">{suggestion}</p>}
-            {!showManualFields && (
+            {!showManualFields && inputMode === 'detail' && (
               <button
                 type="button"
                 onClick={() => setForceManual(true)}
@@ -425,57 +599,92 @@ export default function FlightCard() {
 
       {/* ── 출국편 ── */}
       <div className="space-y-3">
-        {/* Flight number + status */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-[var(--text-primary)] tracking-wider">
-              {dep.flightNumber}
-            </span>
-            <span className="text-[11px] text-[var(--text-muted)]">{dep.airline}</span>
-          </div>
-          <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusStyle.bg} ${statusStyle.text}`}>
-            {FLIGHT_STATUS_LABEL[dep.status] || dep.status}
-          </span>
-        </div>
-
-        {/* Route visualization */}
-        <div className="flex items-center gap-3">
-          {/* Departure */}
-          <div className="text-center min-w-0">
-            <p className="text-lg bento-value">{formatTime(dep.departure.scheduledTime)}</p>
-            <p className="text-[11px] text-[var(--text-secondary)]">{dep.departure.airport}</p>
-            <p className="text-[10px] text-[var(--text-muted)]">{dep.departure.city}</p>
-          </div>
-
-          {/* Flight path */}
-          <div className="flex-1 flex items-center gap-1 px-1">
-            <div className="h-px flex-1 bg-[var(--border)]" />
-            <div className="flex flex-col items-center">
-              <span className="text-[10px]">✈️</span>
-              <span className="text-[9px] text-[var(--text-muted)]">{formatDuration(dep.durationMinutes)}</span>
+        {/* Flight number + status (편명이 있을 때만) */}
+        {dep.flightNumber ? (
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-[var(--text-primary)] tracking-wider">
+                {dep.flightNumber}
+              </span>
+              <span className="text-[11px] text-[var(--text-muted)]">{dep.airline}</span>
             </div>
-            <div className="h-px flex-1 bg-[var(--border)]" />
+            <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${statusStyle.bg} ${statusStyle.text}`}>
+              {FLIGHT_STATUS_LABEL[dep.status] || dep.status}
+            </span>
           </div>
+        ) : (
+          /* 간편 등록 — 편명 추가 유도 */
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] text-[var(--text-muted)]">편명 미등록</span>
+            <button
+              onClick={() => {
+                setInputMode('detail');
+                setDepDate(dep.departure.scheduledTime?.slice(0, 10) || '');
+                setManualArrAirport(dep.arrival.airport);
+                clearDepartureFlight();
+              }}
+              className="text-[10px] text-[var(--accent)] hover:underline"
+            >
+              편명 추가하기 →
+            </button>
+          </div>
+        )}
 
-          {/* Arrival */}
-          <div className="text-center min-w-0">
-            <p className="text-lg bento-value">
-              {formatTime(dep.arrival.scheduledTime)}
-              {isNextDay(dep.departure.scheduledTime, dep.arrival.scheduledTime) && (
-                <span className="text-[9px] text-[var(--accent)] align-super ml-0.5">+1</span>
-              )}
-            </p>
-            <p className="text-[11px] text-[var(--text-secondary)]">{dep.arrival.airport}</p>
-            <p className="text-[10px] text-[var(--text-muted)]">{dep.arrival.city}</p>
+        {/* Route visualization — 간편 등록 시 목적지 강조 */}
+        {dep.flightNumber ? (
+          <div className="flex items-center gap-3">
+            {/* Departure */}
+            <div className="text-center min-w-0">
+              <p className="text-lg bento-value">{formatTime(dep.departure.scheduledTime)}</p>
+              <p className="text-[11px] text-[var(--text-secondary)]">{dep.departure.airport}</p>
+              <p className="text-[10px] text-[var(--text-muted)]">{dep.departure.city}</p>
+            </div>
+
+            {/* Flight path */}
+            <div className="flex-1 flex items-center gap-1 px-1">
+              <div className="h-px flex-1 bg-[var(--border)]" />
+              <div className="flex flex-col items-center">
+                <span className="text-[10px]">✈️</span>
+                <span className="text-[9px] text-[var(--text-muted)]">{formatDuration(dep.durationMinutes)}</span>
+              </div>
+              <div className="h-px flex-1 bg-[var(--border)]" />
+            </div>
+
+            {/* Arrival */}
+            <div className="text-center min-w-0">
+              <p className="text-lg bento-value">
+                {formatTime(dep.arrival.scheduledTime)}
+                {isNextDay(dep.departure.scheduledTime, dep.arrival.scheduledTime) && (
+                  <span className="text-[9px] text-[var(--accent)] align-super ml-0.5">+1</span>
+                )}
+              </p>
+              <p className="text-[11px] text-[var(--text-secondary)]">{dep.arrival.airport}</p>
+              <p className="text-[10px] text-[var(--text-muted)]">{dep.arrival.city}</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          /* 간편 등록 — 목적지 카드 스타일 */
+          <div className="flex items-center gap-4 py-2">
+            <div className="text-center">
+              <p className="text-[11px] text-[var(--text-muted)]">출발</p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">{dep.departure.city || '인천'}</p>
+            </div>
+            <div className="flex-1 flex items-center justify-center">
+              <span className="text-lg">✈️</span>
+            </div>
+            <div className="text-center">
+              <p className="text-[11px] text-[var(--text-muted)]">도착</p>
+              <p className="text-lg font-bold text-[var(--accent)]">{dep.arrival.city}</p>
+            </div>
+          </div>
+        )}
 
         {/* Details row */}
         <div className="flex items-center gap-3 text-[10px] text-[var(--text-muted)]">
           <span>{formatDate(dep.departure.scheduledTime)}</span>
           {dep.departure.terminal && <span>터미널 {dep.departure.terminal}</span>}
           {dep.departure.gate && <span>게이트 {dep.departure.gate}</span>}
-          {dep.source && dep.source !== 'simulated' && (
+          {dep.source && dep.source !== 'simulated' && dep.flightNumber && (
             <span className="opacity-40">{dep.source}</span>
           )}
         </div>
