@@ -301,14 +301,58 @@ export const useJourneyStore = create<JourneyStoreState>()(
     }),
     {
       name: 'journey-storage',
-      version: 1,
+      version: 2, // 1 → 2: 체크리스트 서브카테고리 마이그레이션
       migrate: (persisted: unknown, version: number) => {
         const state = persisted as Record<string, unknown>;
+
+        // v0 → v1: phase 마이그레이션
         if (version === 0 || !version) {
           if (state.phase && typeof state.phase === 'string') {
             state.phase = migratePhase(state.phase);
           }
         }
+
+        // v1 → v2: 체크리스트 서브카테고리 마이그레이션
+        if (version < 2) {
+          const checklist = state.checklist as ChecklistItem[] | undefined;
+          if (checklist && Array.isArray(checklist)) {
+            // 기존 preparation 체크리스트 ID가 p1~p6인지 확인
+            const oldPrepIds = ['p1', 'p2', 'p3', 'p4', 'p5', 'p6'];
+            const hasOldFormat = checklist.some(
+              (item) => item.category === 'preparation' && oldPrepIds.includes(item.id)
+            );
+
+            if (hasOldFormat) {
+              // 기존 preparation 항목 중 done 상태인 ID 보존
+              const oldDoneIds = new Set(
+                checklist
+                  .filter((item) => item.category === 'preparation' && item.done)
+                  .map((item) => item.id)
+              );
+
+              // 새 preparation 체크리스트로 교체 (departure/arrival은 유지)
+              const nonPrep = checklist.filter((item) => item.category !== 'preparation');
+
+              // 새 preparation 항목 생성 (기존 done 상태는 유사 항목에 매핑)
+              const newPrep = PREPARATION_CHECKLIST.map((item) => {
+                // 유사 항목 매핑 (레이블 키워드 기반)
+                let isDone = false;
+                if (item.label.includes('여권') && oldDoneIds.has('p1')) isDone = true;
+                if (item.label.includes('항공편 예약') && oldDoneIds.has('p2')) isDone = true;
+                if (item.label.includes('숙소 예약') && oldDoneIds.has('p3')) isDone = true;
+                if (item.label.includes('여행자 보험') && oldDoneIds.has('p4')) isDone = true;
+                if ((item.label.includes('환전') || item.label.includes('카드')) && oldDoneIds.has('p5')) isDone = true;
+                if (item.label.includes('짐') || item.label.includes('의류') || item.label.includes('세면')) {
+                  if (oldDoneIds.has('p6')) isDone = true;
+                }
+                return { ...item, done: isDone };
+              });
+
+              state.checklist = [...newPrep, ...nonPrep];
+            }
+          }
+        }
+
         return state as unknown as JourneyStoreState;
       },
     }

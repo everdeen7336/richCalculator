@@ -13,6 +13,28 @@ export function migratePhase(old: string): JourneyPhase {
 /** 체크리스트 카테고리 */
 export type ChecklistCategory = 'preparation' | 'departure' | 'arrival';
 
+/** 준비물 서브카테고리 (preparation 내 세분화) */
+export type PackingCategory =
+  | 'documents'      // 서류: 여권, 비자, 신분증
+  | 'finance'        // 금융: 환전, 카드
+  | 'communication'  // 통신: eSIM, 로밍
+  | 'clothing'       // 의류: 옷, 신발
+  | 'toiletries'     // 세면: 세면도구, 화장품
+  | 'electronics'    // 전자기기: 충전기, 어댑터
+  | 'medical'        // 의약품: 상비약
+  | 'booking';       // 예약: 항공, 숙소, 보험
+
+export const PACKING_CATEGORY_META: Record<PackingCategory, { icon: string; label: string; order: number }> = {
+  documents:     { icon: '📄', label: '서류', order: 0 },
+  booking:       { icon: '📋', label: '예약', order: 1 },
+  finance:       { icon: '💳', label: '금융', order: 2 },
+  communication: { icon: '📱', label: '통신', order: 3 },
+  clothing:      { icon: '👕', label: '의류', order: 4 },
+  toiletries:    { icon: '🧴', label: '세면', order: 5 },
+  electronics:   { icon: '🔌', label: '전자기기', order: 6 },
+  medical:       { icon: '💊', label: '의약품', order: 7 },
+};
+
 /**
  * 장소 정보
  */
@@ -96,6 +118,10 @@ export interface ChecklistItem {
   label: string;
   done: boolean;
   category?: ChecklistCategory;
+  /** 준비물 서브카테고리 (category === 'preparation' 일 때만 사용) */
+  packingCategory?: PackingCategory;
+  /** 필수 항목 여부 */
+  essential?: boolean;
 }
 
 /**
@@ -225,14 +251,44 @@ export function getContextCardType(hour: number): ContextCardType {
   return 'moving';
 }
 
-/** 여행 준비 체크리스트 (planning phase) */
+/** 여행 준비 체크리스트 (planning phase) — 카테고리별 세분화 */
 export const PREPARATION_CHECKLIST: ChecklistItem[] = [
-  { id: 'p1', time: '', label: '여권 유효기간 확인', done: false, category: 'preparation' },
-  { id: 'p2', time: '', label: '항공편 예약', done: false, category: 'preparation' },
-  { id: 'p3', time: '', label: '숙소 예약', done: false, category: 'preparation' },
-  { id: 'p4', time: '', label: '여행자 보험 가입', done: false, category: 'preparation' },
-  { id: 'p5', time: '', label: '환전 / 카드 준비', done: false, category: 'preparation' },
-  { id: 'p6', time: '', label: '짐 싸기', done: false, category: 'preparation' },
+  // 📄 서류 (documents)
+  { id: 'doc-1', time: '', label: '여권 유효기간 확인 (6개월 이상)', done: false, category: 'preparation', packingCategory: 'documents', essential: true },
+  { id: 'doc-2', time: '', label: '여권 사본/사진 저장', done: false, category: 'preparation', packingCategory: 'documents', essential: true },
+  { id: 'doc-3', time: '', label: '비자 필요 여부 확인', done: false, category: 'preparation', packingCategory: 'documents', essential: false },
+
+  // 📋 예약 (booking)
+  { id: 'book-1', time: '', label: '항공편 예약', done: false, category: 'preparation', packingCategory: 'booking', essential: true },
+  { id: 'book-2', time: '', label: '숙소 예약', done: false, category: 'preparation', packingCategory: 'booking', essential: true },
+  { id: 'book-3', time: '', label: '여행자 보험 가입', done: false, category: 'preparation', packingCategory: 'booking', essential: true },
+
+  // 💳 금융 (finance)
+  { id: 'fin-1', time: '', label: '환전하기', done: false, category: 'preparation', packingCategory: 'finance', essential: true },
+  { id: 'fin-2', time: '', label: '해외결제 카드 준비', done: false, category: 'preparation', packingCategory: 'finance', essential: true },
+  { id: 'fin-3', time: '', label: '카드사 해외이용 설정', done: false, category: 'preparation', packingCategory: 'finance', essential: false },
+
+  // 📱 통신 (communication)
+  { id: 'comm-1', time: '', label: 'eSIM/유심 구매', done: false, category: 'preparation', packingCategory: 'communication', essential: true },
+  { id: 'comm-2', time: '', label: '필수 앱 다운로드 (지도, 번역)', done: false, category: 'preparation', packingCategory: 'communication', essential: false },
+
+  // 👕 의류 (clothing)
+  { id: 'cloth-1', time: '', label: '현지 날씨 확인', done: false, category: 'preparation', packingCategory: 'clothing', essential: true },
+  { id: 'cloth-2', time: '', label: '의류 챙기기', done: false, category: 'preparation', packingCategory: 'clothing', essential: true },
+  { id: 'cloth-3', time: '', label: '편한 신발', done: false, category: 'preparation', packingCategory: 'clothing', essential: true },
+
+  // 🧴 세면 (toiletries)
+  { id: 'toil-1', time: '', label: '세면도구 (100ml 이하)', done: false, category: 'preparation', packingCategory: 'toiletries', essential: true },
+  { id: 'toil-2', time: '', label: '선크림/화장품', done: false, category: 'preparation', packingCategory: 'toiletries', essential: false },
+
+  // 🔌 전자기기 (electronics)
+  { id: 'elec-1', time: '', label: '충전기/케이블', done: false, category: 'preparation', packingCategory: 'electronics', essential: true },
+  { id: 'elec-2', time: '', label: '여행용 어댑터', done: false, category: 'preparation', packingCategory: 'electronics', essential: true },
+  { id: 'elec-3', time: '', label: '보조배터리', done: false, category: 'preparation', packingCategory: 'electronics', essential: false },
+
+  // 💊 의약품 (medical)
+  { id: 'med-1', time: '', label: '상비약 (두통약, 소화제)', done: false, category: 'preparation', packingCategory: 'medical', essential: true },
+  { id: 'med-2', time: '', label: '개인 처방약', done: false, category: 'preparation', packingCategory: 'medical', essential: false },
 ];
 
 /** 공항 수속 체크리스트 (traveling phase — 출국) */
