@@ -385,7 +385,7 @@ export default function ItineraryWidget() {
                   {/* DAY 인라인 추가 버튼 */}
                   <button
                     onClick={() => { setInlineDayAdd(inlineDayAdd === dayGroup.day ? null : dayGroup.day); setInlineInput(''); }}
-                    className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors flex-shrink-0 opacity-0 group-hover:opacity-100 px-0.5"
+                    className="text-[10px] text-[var(--text-muted)] hover:text-[var(--accent)] transition-colors flex-shrink-0 sm:opacity-0 sm:group-hover:opacity-100 w-7 h-7 flex items-center justify-center"
                     title={`DAY ${dayGroup.day}에 장소 추가`}
                   >＋</button>
                 </div>
@@ -527,14 +527,14 @@ export default function ItineraryWidget() {
                           </div>
 
                           {/* 액션 버튼 */}
-                          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                             <button
                               onClick={() => startEdit(item)}
-                              className="text-[9px] text-[var(--text-muted)] hover:text-[var(--accent)] w-4 h-4 flex items-center justify-center"
+                              className="text-[9px] text-[var(--text-muted)] hover:text-[var(--accent)] w-7 h-7 flex items-center justify-center"
                             >✎</button>
                             <button
                               onClick={() => removeItem(item.id)}
-                              className="text-[9px] text-[var(--text-muted)] hover:text-[#C4564A] w-4 h-4 flex items-center justify-center"
+                              className="text-[9px] text-[var(--text-muted)] hover:text-[#C4564A] w-7 h-7 flex items-center justify-center"
                             >×</button>
                           </div>
                         </li>

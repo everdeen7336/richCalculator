@@ -66,7 +66,7 @@ function ChecklistSection({ category, items, toggleChecklist, removeChecklistIte
                   : 'border-[var(--border)] hover:border-[var(--text-muted)]'
                 }
               `}
-              style={{ width: 18, height: 18 }}
+              style={{ width: 22, height: 22 }}
             >
               {item.done && (
                 <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -100,7 +100,7 @@ function ChecklistSection({ category, items, toggleChecklist, removeChecklistIte
             <button
               onClick={() => removeChecklistItem(item.id)}
               className="
-                w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0
+                w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0
                 text-[var(--text-muted)] opacity-0 group-hover:opacity-100
                 hover:text-[#C4564A] transition-all duration-150
               "

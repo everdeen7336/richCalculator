@@ -14,15 +14,31 @@ import TransitFlightCard from '@/components/bento/TransitFlightCard';
 
 import PhaseIndicator from '@/components/journey/PhaseIndicator';
 import ShareButton from '@/components/bento/ShareButton';
-import NudgeBar from '@/components/journey/NudgeBar';
+import NudgeBar, { useCurrentStage } from '@/components/journey/NudgeBar';
 import GlobeHero from '@/components/3d/GlobeHero';
 import FeedbackButton from '@/components/bento/FeedbackButton';
 import { useJourneyStore } from '@/stores/journey.store';
+import type { JourneyStage } from '@/types/journey';
+
+/** 넛지 단계 → 강조할 위젯 ID 매핑 */
+const STAGE_FOCUS: Record<JourneyStage, string[]> = {
+  dreaming:      ['flight-card'],
+  flight:        ['flight-card'],
+  accommodation: ['accommodation-card'],
+  itinerary:     ['itinerary-widget'],
+  packing:       ['schedule-widget'],
+  departure:     ['schedule-widget'],
+  ontrip:        ['itinerary-widget', 'budget-widget'],
+  return:        ['budget-widget'],
+};
 
 export default function Dashboard() {
   const { phase, departureFlight, returnFlight, transitFlights, reset } = useJourneyStore();
+  const { stage } = useCurrentStage();
 
   const hasFlight = !!(departureFlight || returnFlight || transitFlights.length > 0);
+  const focusIds = STAGE_FOCUS[stage] || [];
+  const dim = (id: string) => focusIds.length > 0 && !focusIds.includes(id) ? 'opacity-60 transition-opacity duration-500' : 'transition-opacity duration-500';
 
   return (
     <main className="min-h-screen">
@@ -61,37 +77,37 @@ export default function Dashboard() {
         {phase === 'planning' && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {/* 항공편 등록 */}
-            <div id="flight-card" className="col-span-2 fade-in-up fade-in-delay-1">
+            <div id="flight-card" className={`col-span-2 fade-in-up fade-in-delay-1 ${dim('flight-card')}`}>
               <FlightCard />
             </div>
-            <div className="col-span-2 fade-in-up fade-in-delay-1">
+            <div className={`col-span-2 fade-in-up fade-in-delay-1 ${dim('flight-card')}`}>
               <ReturnFlightCard />
             </div>
 
             {/* 경유/이동편 — 출발편이 등록된 경우에만 표시 */}
             {departureFlight && (
-              <div id="transit-flight-card" className="col-span-2 md:col-span-4 fade-in-up fade-in-delay-1">
+              <div id="transit-flight-card" className={`col-span-2 md:col-span-4 fade-in-up fade-in-delay-1 ${dim('flight-card')}`}>
                 <TransitFlightCard />
               </div>
             )}
 
             {/* 숙소 */}
-            <div id="accommodation-card" className="col-span-2 fade-in-up fade-in-delay-2">
+            <div id="accommodation-card" className={`col-span-2 fade-in-up fade-in-delay-2 ${dim('accommodation-card')}`}>
               <AccommodationCard />
             </div>
 
             {/* 체크리스트 */}
-            <div id="schedule-widget" className="col-span-2 fade-in-up fade-in-delay-2">
+            <div id="schedule-widget" className={`col-span-2 fade-in-up fade-in-delay-2 ${dim('schedule-widget')}`}>
               <ScheduleWidget />
             </div>
 
             {/* 예산 */}
-            <div id="budget-widget" className="col-span-2 fade-in-up fade-in-delay-3">
+            <div id="budget-widget" className={`col-span-2 fade-in-up fade-in-delay-3 ${dim('budget-widget')}`}>
               <BudgetWidget />
             </div>
 
             {/* 여행 일정 */}
-            <div id="itinerary-widget" className="col-span-2 fade-in-up fade-in-delay-3">
+            <div id="itinerary-widget" className={`col-span-2 fade-in-up fade-in-delay-3 ${dim('itinerary-widget')}`}>
               <ItineraryWidget />
             </div>
 
