@@ -6,6 +6,50 @@ import { GA } from '@/lib/analytics';
 import type { JourneyStage } from '@/types/journey';
 import { STAGE_META } from '@/types/journey';
 
+/** 외부 딥링크 빌더 */
+type DeepLinkBuilder = (dest: string, depDate: string, retDate: string) => string;
+
+interface ExternalLink {
+  label: string;
+  baseUrl: string;
+  buildUrl: DeepLinkBuilder;
+}
+
+const EXT: Record<string, ExternalLink> = {
+  skyscanner: {
+    label: '스카이스캐너에서 항공권 검색',
+    baseUrl: 'https://www.skyscanner.co.kr',
+    buildUrl: (dest, dep) =>
+      `https://www.skyscanner.co.kr/transport/flights/ICN/${encodeURIComponent(dest)}/${dep.replace(/-/g, '')}/?adultsv2=1`,
+  },
+  skyscannerShort: {
+    label: '스카이스캐너',
+    baseUrl: 'https://www.skyscanner.co.kr',
+    buildUrl: (dest, dep) =>
+      `https://www.skyscanner.co.kr/transport/flights/ICN/${encodeURIComponent(dest)}/${dep.replace(/-/g, '')}/?adultsv2=1`,
+  },
+  booking: {
+    label: 'Booking.com',
+    baseUrl: 'https://www.booking.com',
+    buildUrl: (dest, dep, ret) => {
+      const params = new URLSearchParams({ ss: dest });
+      if (dep) params.set('checkin', dep);
+      if (ret) params.set('checkout', ret);
+      return `https://www.booking.com/searchresults.html?${params.toString()}`;
+    },
+  },
+  airbnb: {
+    label: '에어비앤비',
+    baseUrl: 'https://www.airbnb.co.kr',
+    buildUrl: (dest, dep, ret) => {
+      const params = new URLSearchParams({ query: dest });
+      if (dep) params.set('checkin', dep);
+      if (ret) params.set('checkout', ret);
+      return `https://www.airbnb.co.kr/s/${encodeURIComponent(dest)}/homes?${params.toString()}`;
+    },
+  },
+};
+
 /** 여정 단계별 넛지 정의 */
 interface NudgeConfig {
   stage: JourneyStage;
@@ -13,7 +57,7 @@ interface NudgeConfig {
   nextMessage: string;
   ctaLabel: string;
   ctaAction: string; // scroll target id or action key
-  externalLinks?: { label: string; url: string }[];
+  extKeys?: (keyof typeof EXT)[];
 }
 
 const NUDGE_MAP: NudgeConfig[] = [
@@ -23,9 +67,7 @@ const NUDGE_MAP: NudgeConfig[] = [
     nextMessage: '출발 날짜와 편명을 입력하면 여행이 시작돼요 ✈️',
     ctaLabel: '시작하기',
     ctaAction: '#flight-card',
-    externalLinks: [
-      { label: '스카이스캐너에서 항공권 검색', url: 'https://www.skyscanner.co.kr' },
-    ],
+    extKeys: ['skyscanner'],
   },
   {
     stage: 'flight',
@@ -33,9 +75,7 @@ const NUDGE_MAP: NudgeConfig[] = [
     nextMessage: '편명을 등록하면 실시간 추적이 시작돼요',
     ctaLabel: '편명 등록',
     ctaAction: '#flight-card',
-    externalLinks: [
-      { label: '스카이스캐너', url: 'https://www.skyscanner.co.kr' },
-    ],
+    extKeys: ['skyscannerShort'],
   },
   {
     stage: 'accommodation',
@@ -43,10 +83,7 @@ const NUDGE_MAP: NudgeConfig[] = [
     nextMessage: '다음은 숙소를 정해볼까요?',
     ctaLabel: '숙소 등록',
     ctaAction: '#accommodation-card',
-    externalLinks: [
-      { label: 'Booking.com', url: 'https://www.booking.com' },
-      { label: '에어비앤비', url: 'https://www.airbnb.co.kr' },
-    ],
+    extKeys: ['booking', 'airbnb'],
   },
   {
     stage: 'itinerary',
@@ -167,12 +204,13 @@ function useCurrentStage(): { stage: JourneyStage; completedStages: JourneyStage
 
 export default function NudgeBar() {
   const { stage, completedStages, percent } = useCurrentStage();
-  const { setPhase, destination, departureDate, departureFlight: depFlight } = useJourneyStore();
+  const { setPhase, destination, departureDate, departureFlight: depFlight, returnFlight: retFlight } = useJourneyStore();
 
   const nudge = NUDGE_MAP.find((n) => n.stage === stage);
   if (!nudge) return null;
 
-  const effectiveDate = departureDate || depFlight?.departure?.scheduledTime?.split('T')[0] || '';
+  const effectiveDate = departureDate || depFlight?.departure?.scheduledTime?.slice(0, 10) || '';
+  const returnDate = retFlight?.arrival?.scheduledTime?.slice(0, 10) || '';
 
   const dDayText = useMemo(() => {
     if (!effectiveDate) return '';
@@ -255,18 +293,25 @@ export default function NudgeBar() {
         >
           {nudge.ctaLabel}
         </button>
-        {nudge.externalLinks?.map((link) => (
-          <a
-            key={link.label}
-            href={destination ? `${link.url}/searchresults.html?ss=${encodeURIComponent(destination)}` : link.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => GA.externalLinkClicked(link.label)}
-            className="text-[11px] px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
-          >
-            {link.label}
-          </a>
-        ))}
+        {nudge.extKeys?.map((key) => {
+          const ext = EXT[key];
+          if (!ext) return null;
+          const href = destination
+            ? ext.buildUrl(destination, effectiveDate, returnDate)
+            : ext.baseUrl;
+          return (
+            <a
+              key={key}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => GA.externalLinkClicked(ext.label)}
+              className="text-[11px] px-3 py-1.5 rounded-full border border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)] hover:text-[var(--accent)] transition-colors"
+            >
+              {ext.label}
+            </a>
+          );
+        })}
       </div>
     </div>
   );
