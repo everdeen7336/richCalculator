@@ -21,7 +21,7 @@ export default function ShareButton() {
     const shareData = {
       title: `${dest} 여행 — 토키보`,
       text,
-      url: window.location.href,
+      url: `${window.location.origin}${window.location.pathname}?utm_source=tokibo&utm_medium=share`,
     };
 
     // Web Share API가 있으면 네이티브 공유
@@ -37,7 +37,8 @@ export default function ShareButton() {
 
     // 없으면 클립보드 복사
     try {
-      await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      const shareUrl = `${window.location.origin}${window.location.pathname}?utm_source=tokibo&utm_medium=share`;
+      await navigator.clipboard.writeText(`${text}\n${shareUrl}`);
       GA.shareClicked('clipboard');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
