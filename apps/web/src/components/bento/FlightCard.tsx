@@ -90,7 +90,7 @@ function getCountdown(iso: string): string | null {
 }
 
 export default function FlightCard() {
-  const { departureFlight, setDepartureFlight, clearDepartureFlight, clearFlights, setDepartureDate, setDestination } = useJourneyStore();
+  const { departureFlight, setDepartureFlight, clearDepartureFlight, clearFlights, setDepartureDate, setDestination, phase } = useJourneyStore();
 
   const [depInput, setDepInput] = useState('');
   const [depDate, setDepDate] = useState('');
@@ -377,11 +377,26 @@ export default function FlightCard() {
   const dep = departureFlight;
   const statusStyle = STATUS_STYLES[dep.status] || STATUS_STYLES.scheduled;
 
+  // traveling 모드일 때 비행 상태에 따른 제목 변경
+  const getFlightTitle = () => {
+    if (phase !== 'traveling') return '항공편';
+    switch (dep.status) {
+      case 'boarding': return '탑승 중 ✈️';
+      case 'departed': return '출발 완료';
+      case 'in_air': return '비행 중 🌍';
+      case 'landed': return '착륙 완료';
+      case 'arrived': return '도착 완료';
+      case 'delayed': return '지연 안내 ⚠️';
+      case 'cancelled': return '취소됨 ⚠️';
+      default: return countdown ? '출발 대기' : '항공편';
+    }
+  };
+
   return (
     <BentoCard>
       {/* Header */}
       <div className="flex items-center justify-between mb-3">
-        <p className="bento-label">항공편</p>
+        <p className="bento-label">{getFlightTitle()}</p>
         <div className="flex items-center gap-2">
           <button
             onClick={() => {
@@ -463,10 +478,16 @@ export default function FlightCard() {
           {dep.source && dep.source !== 'simulated' && (
             <span className="opacity-40">{dep.source}</span>
           )}
-          {countdown && (
-            <span className="text-[var(--accent)] font-medium ml-auto">{countdown}</span>
-          )}
         </div>
+
+        {/* Countdown — traveling 모드에서 강조 */}
+        {countdown && (
+          <div className={`mt-2 text-center ${phase === 'traveling' ? 'bg-[var(--accent)]/10 rounded-lg py-2' : ''}`}>
+            <p className={`font-medium ${phase === 'traveling' ? 'text-[var(--accent)] text-sm' : 'text-[var(--accent)] text-[11px]'}`}>
+              {phase === 'traveling' ? `⏱️ ${countdown}` : countdown}
+            </p>
+          </div>
+        )}
       </div>
 
       {error && <p className="text-[11px] text-[#C4564A] mt-2">{error}</p>}

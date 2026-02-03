@@ -289,14 +289,30 @@ function ChecklistSection({ category, items, toggleChecklist, removeChecklistIte
 }
 
 export default function ScheduleWidget() {
-  const { checklist, toggleChecklist, addChecklistItem, removeChecklistItem, updateChecklistItem, resetChecklist } = useJourneyStore();
+  const { phase, checklist, toggleChecklist, addChecklistItem, removeChecklistItem, updateChecklistItem, resetChecklist } = useJourneyStore();
   const [showAdd, setShowAdd] = useState(false);
   const [newLabel, setNewLabel] = useState('');
   const [newTime, setNewTime] = useState('');
 
-  const doneCount = checklist.filter((i) => i.done).length;
-  const progress = checklist.length > 0 ? Math.round((doneCount / checklist.length) * 100) : 0;
-  const groups = groupByCategory(checklist);
+  // phase에 따라 보여줄 카테고리 필터링
+  // planning: preparation만 (출국 전 준비)
+  // traveling: departure + arrival (공항 수속 + 입국 절차)
+  const filteredChecklist = checklist.filter((item) => {
+    const cat = item.category || 'preparation';
+    if (phase === 'planning') {
+      return cat === 'preparation';
+    } else {
+      return cat === 'departure' || cat === 'arrival';
+    }
+  });
+
+  const doneCount = filteredChecklist.filter((i) => i.done).length;
+  const progress = filteredChecklist.length > 0 ? Math.round((doneCount / filteredChecklist.length) * 100) : 0;
+  const groups = groupByCategory(filteredChecklist);
+
+  // 위젯 제목과 설명을 phase에 따라 변경
+  const widgetTitle = phase === 'planning' ? '여행 준비' : '공항 체크리스트';
+  const widgetSubtitle = phase === 'planning' ? '출발 전 챙겨야 할 것들' : '수속 절차를 따라가세요';
 
   const handleAdd = (e: React.FormEvent) => {
     e.preventDefault();
@@ -318,13 +334,13 @@ export default function ScheduleWidget() {
   return (
     <BentoCard>
       {/* 헤더 */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="bento-label">체크리스트</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="bento-label">{widgetTitle}</p>
         <div className="flex items-center gap-2">
           <span className="text-[11px] font-medium text-[var(--text-muted)]">
-            {doneCount}/{checklist.length}
+            {doneCount}/{filteredChecklist.length}
           </span>
-          {doneCount > 0 && doneCount === checklist.length && (
+          {doneCount > 0 && doneCount === filteredChecklist.length && (
             <button
               onClick={resetChecklist}
               className="text-[10px] text-[var(--accent)] hover:underline"
@@ -334,6 +350,7 @@ export default function ScheduleWidget() {
           )}
         </div>
       </div>
+      <p className="text-[11px] text-[var(--text-muted)] mb-3">{widgetSubtitle}</p>
 
       {/* 전체 진행률 */}
       <div className="w-full h-1 bg-[var(--border-light)] rounded-full mb-4 overflow-hidden">
@@ -416,16 +433,26 @@ export default function ScheduleWidget() {
         </form>
       )}
 
-      {/* 프리미엄 CTA */}
-      <div className="mt-4 pt-3 border-t border-[var(--border-light)]">
-        <button onClick={() => GA.ctaClicked('schedule', '실시간 알림')} className="
-          w-full py-2.5 rounded-xl text-[11px] font-medium
-          bg-[var(--accent)]/8 text-[var(--accent)]
-          hover:bg-[var(--accent)]/15 transition-all duration-200
-        ">
-          실시간 항공편 알림 받기 →
-        </button>
-      </div>
+      {/* 프리미엄 CTA — traveling 모드일 때만 표시 */}
+      {phase === 'traveling' && (
+        <div className="mt-4 pt-3 border-t border-[var(--border-light)]">
+          <button onClick={() => GA.ctaClicked('schedule', '실시간 알림')} className="
+            w-full py-2.5 rounded-xl text-[11px] font-medium
+            bg-[var(--accent)]/8 text-[var(--accent)]
+            hover:bg-[var(--accent)]/15 transition-all duration-200
+          ">
+            실시간 항공편 알림 받기 →
+          </button>
+        </div>
+      )}
+
+      {/* 빈 상태 — traveling인데 departure/arrival 항목이 없을 때 */}
+      {phase === 'traveling' && filteredChecklist.length === 0 && (
+        <div className="text-center py-6 text-[var(--text-muted)]">
+          <p className="text-[12px]">항공편을 등록하면</p>
+          <p className="text-[12px]">출국/입국 체크리스트가 생성돼요</p>
+        </div>
+      )}
     </BentoCard>
   );
 }

@@ -119,9 +119,21 @@ function groupByDay(items: JourneyItem[], tripDays: number, startDate: string) {
 export default function ItineraryWidget() {
   const {
     items, departureDate, addItem, removeItem, updateItem, updateItemPlace, moveItem,
-    destination, setDestination,
+    destination, setDestination, phase,
   } = useJourneyStore();
   const tripDays = useTripDays();
+
+  /* ── 오늘이 여행 몇째 날인지 계산 (traveling 모드용) ── */
+  const getTodayDayNumber = (): number | null => {
+    if (!departureDate) return null;
+    const depDate = new Date(departureDate + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffDays = Math.floor((today.getTime() - depDate.getTime()) / 86400000) + 1;
+    if (diffDays < 1 || diffDays > tripDays) return null;
+    return diffDays;
+  };
+  const todayDay = phase === 'traveling' ? getTodayDayNumber() : null;
 
   /* ── 상태 ── */
   const [showAdd, setShowAdd] = useState(false);
@@ -325,10 +337,18 @@ export default function ItineraryWidget() {
     setDropTargetDay(null);
   }, [moveItem, updateItem, items, dropTargetDay]);
 
+  // traveling 모드일 때 위젯 제목과 설명 변경
+  const widgetTitle = phase === 'traveling' && todayDay ? `DAY ${todayDay} 일정` : '여행 일정';
+  const widgetSubtitle = phase === 'traveling' && todayDay
+    ? '오늘 방문할 장소들'
+    : phase === 'planning'
+    ? 'DAY별로 일정을 관리하세요'
+    : null;
+
   return (
     <BentoCard>
-      <div className="flex items-center justify-between mb-3">
-        <p className="bento-label">여행 일정</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="bento-label">{widgetTitle}</p>
         <div className="flex items-center gap-2">
           <span className="text-[10px] text-[var(--text-muted)]">{items.length}곳</span>
           {tripDays > 0 && (
@@ -336,6 +356,9 @@ export default function ItineraryWidget() {
           )}
         </div>
       </div>
+      {widgetSubtitle && (
+        <p className="text-[11px] text-[var(--text-muted)] mb-3">{widgetSubtitle}</p>
+      )}
 
       {/* 비어있을 때 — 클릭으로 입력 포커스 */}
       {items.length === 0 && !showAdd && (
@@ -357,7 +380,7 @@ export default function ItineraryWidget() {
               <div key={dayGroup.day}>
                 {/* Day 헤더 행 */}
                 <div
-                  className={`flex items-center gap-2 mb-2 group rounded-lg px-1 py-0.5 -mx-1 transition-all ${dropTargetDay === dayGroup.day && draggingId ? 'bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/40' : ''}`}
+                  className={`flex items-center gap-2 mb-2 group rounded-lg px-1 py-0.5 -mx-1 transition-all ${dropTargetDay === dayGroup.day && draggingId ? 'bg-[var(--accent)]/15 ring-1 ring-[var(--accent)]/40' : ''} ${todayDay === dayGroup.day ? 'bg-[var(--accent)]/10' : ''}`}
                 >
                   <button
                     onClick={() => toggleDay(dayGroup.day)}
@@ -365,8 +388,8 @@ export default function ItineraryWidget() {
                     onDragEnter={() => handleDayDragEnter(dayGroup.day)}
                     className="flex items-center gap-2 flex-1 min-w-0 text-left"
                   >
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${dropTargetDay === dayGroup.day && draggingId ? 'text-white bg-[var(--accent)]' : 'text-[var(--accent)] bg-[var(--accent)]/8'}`}>
-                      DAY {dayGroup.day}
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors flex-shrink-0 ${todayDay === dayGroup.day ? 'text-white bg-[var(--accent)]' : dropTargetDay === dayGroup.day && draggingId ? 'text-white bg-[var(--accent)]' : 'text-[var(--accent)] bg-[var(--accent)]/8'}`}>
+                      {todayDay === dayGroup.day ? '오늘' : `DAY ${dayGroup.day}`}
                     </span>
                     <span className="text-[10px] text-[var(--text-muted)]">{dayGroup.date}</span>
                     {dropTargetDay === dayGroup.day && draggingId && (

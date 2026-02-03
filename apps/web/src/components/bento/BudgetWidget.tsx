@@ -62,7 +62,7 @@ export default function BudgetWidget() {
   const {
     budget, expenses, addExpense, removeExpense, updateExpense,
     updateCategoryPlanned, updateCategoryLabel, addBudgetCategory,
-    removeBudgetCategory,
+    removeBudgetCategory, phase,
   } = useJourneyStore();
 
   /* ── 상태 ── */
@@ -174,11 +174,24 @@ export default function BudgetWidget() {
   /* ── 통화 심볼 ── */
   const currencySymbol = TRAVEL_CURRENCIES.find((c) => c.code === expCurrency)?.symbol || '';
 
+  // 오늘 지출 계산 (traveling 모드용)
+  const todayExpenses = useMemo(() => {
+    const today = new Date().toISOString().split('T')[0];
+    return expenses.filter((exp) => exp.createdAt.startsWith(today));
+  }, [expenses]);
+  const todayTotal = todayExpenses.reduce((s, e) => s + e.amount, 0);
+
+  // phase에 따라 위젯 제목과 설명 변경
+  const widgetTitle = phase === 'traveling' ? '오늘 지출' : '여행 예산';
+  const widgetSubtitle = phase === 'traveling'
+    ? todayTotal > 0 ? `${formatKRW(todayTotal)}원 사용` : '아직 지출이 없어요'
+    : '카테고리별 예산을 설정하세요';
+
   return (
     <BentoCard>
       {/* ── Header ── */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="bento-label">여행 예산</p>
+      <div className="flex items-center justify-between mb-1">
+        <p className="bento-label">{widgetTitle}</p>
         <div className="flex items-center gap-2">
           {expenses.length > 0 && (
             <button
@@ -190,6 +203,7 @@ export default function BudgetWidget() {
           )}
         </div>
       </div>
+      <p className="text-[11px] text-[var(--text-muted)] mb-3">{widgetSubtitle}</p>
 
       {/* ── Summary ── */}
       <div className="flex items-baseline gap-2 mb-1">
@@ -589,13 +603,15 @@ export default function BudgetWidget() {
             setShowForm(true);
             if (!expCategory && budget.length > 0) setExpCategory(budget[0].id);
           }}
-          className="
-            mt-3 w-full py-2 rounded-xl border border-dashed border-[var(--border)]
-            text-[11px] text-[var(--text-muted)] hover:text-[var(--accent)]
-            hover:border-[var(--accent)] transition-all duration-200
-          "
+          className={`
+            mt-3 w-full py-2.5 rounded-xl text-[11px] font-medium transition-all duration-200
+            ${phase === 'traveling'
+              ? 'bg-[var(--accent)] text-white hover:bg-[var(--accent)]/90'
+              : 'border border-dashed border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--accent)] hover:border-[var(--accent)]'
+            }
+          `}
         >
-          + 지출 기록
+          {phase === 'traveling' ? '💰 지출 기록하기' : '+ 지출 기록'}
         </button>
       ) : (
         <form onSubmit={handleAddExpense} className="mt-3 pt-3 border-t border-[var(--border-light)] space-y-2">
