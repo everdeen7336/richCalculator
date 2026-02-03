@@ -337,12 +337,15 @@ export default function ItineraryWidget() {
         </div>
       </div>
 
-      {/* 비어있을 때 */}
+      {/* 비어있을 때 — 클릭으로 입력 포커스 */}
       {items.length === 0 && !showAdd && (
-        <div className="text-center py-4">
-          <p className="text-xs text-[var(--text-muted)] mb-1">가고 싶은 장소를 추가해보세요</p>
+        <button
+          onClick={() => quickRef.current?.focus()}
+          className="w-full text-center py-4 hover:bg-[var(--bg-secondary)]/30 rounded-xl transition-colors"
+        >
+          <p className="text-xs text-[var(--text-muted)] mb-1">+ 가고 싶은 장소를 추가해보세요</p>
           <p className="text-[10px] text-[var(--text-muted)]">DAY별로 일정을 관리할 수 있어요</p>
-        </div>
+        </button>
       )}
 
       {/* 일별 타임라인 */}
@@ -538,9 +541,16 @@ export default function ItineraryWidget() {
                       );
                     })}
 
-                    {/* 이 DAY에 빈 상태 */}
+                    {/* 이 DAY에 빈 상태 — 클릭으로 인라인 추가 */}
                     {dayGroup.items.length === 0 && inlineDayAdd !== dayGroup.day && (
-                      <li className="text-[10px] text-[var(--text-muted)] italic py-1 ml-6">장소를 추가해보세요</li>
+                      <li>
+                        <button
+                          onClick={() => { setInlineDayAdd(dayGroup.day); setInlineInput(''); }}
+                          className="text-[10px] text-[var(--text-muted)] italic py-1 ml-6 hover:text-[var(--accent)] transition-colors"
+                        >
+                          + 장소를 추가해보세요
+                        </button>
+                      </li>
                     )}
 
                     {/* DAY 인라인 입력 */}
