@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Terminal, TERMINAL_CONFIG } from '@/types';
 import { useForecast } from '@/hooks/useForecast';
 import { useParking } from '@/hooks/useParking';
@@ -10,6 +10,7 @@ import { CongestionHeatmap } from '@/components/forecast/CongestionHeatmap';
 import { ParkingSection } from '@/components/parking/ParkingSection';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { GA } from '@/lib/analytics';
 
 function getDateRange(): string[] {
   const dates: string[] = [];
@@ -58,6 +59,30 @@ export default function ArrivalPage() {
   const { data: parkingData } = useParking(selectedTerminal);
   const currentHour = new Date().getHours();
   const todaySelected = isToday(selectedDate);
+
+  // 30초 체류 트래킹
+  const engagedRef = useRef(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!engagedRef.current) {
+        GA.airPageEngaged('arrival', 'time_30s');
+        engagedRef.current = true;
+      }
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 터미널 변경 트래킹
+  const handleTerminalChange = (t: Terminal) => {
+    setSelectedTerminal(t);
+    GA.airTerminalSelected(t, 'arrival');
+  };
+
+  // 날짜 변경 트래킹
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
+    GA.airDateChanged('arrival');
+  };
 
   const forecast = data?.data;
   const parking = parkingData?.data;
@@ -110,7 +135,7 @@ export default function ArrivalPage() {
         {Object.values(Terminal).map((t) => (
           <button
             key={t}
-            onClick={() => setSelectedTerminal(t)}
+            onClick={() => handleTerminalChange(t)}
             className={`px-5 py-3 rounded-xl font-bold transition-all border-2 ${
               selectedTerminal === t
                 ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
@@ -137,7 +162,7 @@ export default function ArrivalPage() {
           <span className="text-xs text-gray-400">얼마나 기다릴까?</span>
         </div>
 
-        <DateSelector dates={dates} selected={selectedDate} onSelect={setSelectedDate} />
+        <DateSelector dates={dates} selected={selectedDate} onSelect={handleDateChange} />
 
         {isLoading && (
           <div className="flex justify-center py-12">

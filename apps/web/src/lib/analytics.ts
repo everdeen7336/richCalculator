@@ -86,4 +86,30 @@ export const GA = {
   /** 외부 딥링크 클릭 */
   externalLinkClicked: (service: string) =>
     trackEvent({ action: 'external_link_clicked', category: 'referral', label: service }),
+
+  // ── /air 페이지 이벤트 ──
+
+  /** /air 허브 페이지 진입 */
+  airHubViewed: () =>
+    trackEvent({ action: 'air_hub_viewed', category: 'air_guide' }),
+
+  /** 출국/입국 카드 클릭 */
+  airJourneySelected: (journey: 'departure' | 'arrival') =>
+    trackEvent({ action: 'air_journey_selected', category: 'air_guide', label: journey }),
+
+  /** 터미널 선택 */
+  airTerminalSelected: (terminal: 'T1' | 'T2', page: 'departure' | 'arrival') =>
+    trackEvent({ action: 'air_terminal_selected', category: 'air_guide', label: `${page}:${terminal}` }),
+
+  /** 날짜 변경 */
+  airDateChanged: (page: 'departure' | 'arrival') =>
+    trackEvent({ action: 'air_date_changed', category: 'air_guide', label: page }),
+
+  /** 주차 새로고침 클릭 */
+  airParkingRefreshed: (terminal: 'T1' | 'T2') =>
+    trackEvent({ action: 'air_parking_refreshed', category: 'air_guide', label: terminal }),
+
+  /** 페이지 체류 (스크롤 깊이 또는 시간 기반) */
+  airPageEngaged: (page: 'hub' | 'departure' | 'arrival', engagementType: 'scroll_50' | 'scroll_100' | 'time_30s' | 'time_60s') =>
+    trackEvent({ action: 'air_page_engaged', category: 'air_guide', label: `${page}:${engagementType}` }),
 };

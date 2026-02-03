@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { Terminal, TERMINAL_CONFIG } from '@/types';
 import { useForecast } from '@/hooks/useForecast';
 import { useParking } from '@/hooks/useParking';
@@ -10,6 +10,7 @@ import { CongestionHeatmap } from '@/components/forecast/CongestionHeatmap';
 import { ParkingCard } from '@/components/parking/ParkingCard';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 import { ErrorMessage } from '@/components/common/ErrorMessage';
+import { GA } from '@/lib/analytics';
 
 function getDateRange(): string[] {
   const dates: string[] = [];
@@ -70,6 +71,36 @@ export default function DeparturePage() {
   const currentHour = new Date().getHours();
   const todaySelected = isToday(selectedDate);
 
+  // 30초 체류 트래킹
+  const engagedRef = useRef(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!engagedRef.current) {
+        GA.airPageEngaged('departure', 'time_30s');
+        engagedRef.current = true;
+      }
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 터미널 변경 트래킹
+  const handleTerminalChange = (t: Terminal) => {
+    setSelectedTerminal(t);
+    GA.airTerminalSelected(t, 'departure');
+  };
+
+  // 날짜 변경 트래킹
+  const handleDateChange = (date: string) => {
+    setSelectedDate(date);
+    GA.airDateChanged('departure');
+  };
+
+  // 주차 새로고침 트래킹
+  const handleParkingRefresh = () => {
+    parkingRefetch();
+    GA.airParkingRefreshed(selectedTerminal);
+  };
+
   const forecast = data?.data;
 
   const computed = useMemo(() => {
@@ -119,7 +150,7 @@ export default function DeparturePage() {
         {Object.values(Terminal).map((t) => (
           <button
             key={t}
-            onClick={() => setSelectedTerminal(t)}
+            onClick={() => handleTerminalChange(t)}
             className={`px-5 py-3 rounded-xl font-bold transition-all border-2 ${
               selectedTerminal === t
                 ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
@@ -153,7 +184,7 @@ export default function DeparturePage() {
           <ParkingCard
             parking={parkingData.data}
             isRefreshing={parkingFetching}
-            onRefresh={() => parkingRefetch()}
+            onRefresh={handleParkingRefresh}
           />
         ) : null}
       </section>
@@ -168,7 +199,7 @@ export default function DeparturePage() {
           <span className="text-xs text-gray-400">얼마나 붐빌까?</span>
         </div>
 
-        <DateSelector dates={dates} selected={selectedDate} onSelect={setSelectedDate} />
+        <DateSelector dates={dates} selected={selectedDate} onSelect={handleDateChange} />
 
         {isLoading && (
           <div className="flex justify-center py-12">

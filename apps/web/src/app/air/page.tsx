@@ -1,9 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { Terminal, TERMINAL_CONFIG } from '@/types';
 import { useForecast } from '@/hooks/useForecast';
 import { useParking } from '@/hooks/useParking';
+import { GA } from '@/lib/analytics';
 
 /** 혼잡 레벨 (간략) */
 function getQuickLevel(value: number, peak: number): { label: string; emoji: string; color: string } {
@@ -71,6 +73,11 @@ function TerminalSnapshot({ terminal }: { terminal: Terminal }) {
 }
 
 export default function AirHubPage() {
+  // 페이지 진입 트래킹
+  useEffect(() => {
+    GA.airHubViewed();
+  }, []);
+
   return (
     <main className="container mx-auto px-4 py-8 max-w-4xl">
       {/* 헤더 */}
@@ -85,6 +92,7 @@ export default function AirHubPage() {
       <div className="grid grid-cols-2 gap-4 mb-8">
         <Link
           href="/air/departure"
+          onClick={() => GA.airJourneySelected('departure')}
           className="group relative bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden"
         >
           <div className="relative z-10">
@@ -101,6 +109,7 @@ export default function AirHubPage() {
 
         <Link
           href="/air/arrival"
+          onClick={() => GA.airJourneySelected('arrival')}
           className="group relative bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 overflow-hidden"
         >
           <div className="relative z-10">
