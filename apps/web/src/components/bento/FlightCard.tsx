@@ -109,7 +109,7 @@ function getCountdown(iso: string): string | null {
 }
 
 export default function FlightCard() {
-  const { departureFlight, setDepartureFlight, clearDepartureFlight, clearFlights, setDepartureDate, setDestination, phase } = useJourneyStore();
+  const { departureFlight, setDepartureFlight, clearDepartureFlight, setDepartureDate, setDestination, phase } = useJourneyStore();
 
   const [depInput, setDepInput] = useState('');
   const [depDate, setDepDate] = useState('');
@@ -589,7 +589,7 @@ export default function FlightCard() {
             수정
           </button>
           <button
-            onClick={clearFlights}
+            onClick={clearDepartureFlight}
             className="text-[10px] text-[var(--text-muted)] hover:text-[#C4564A] transition-colors"
           >
             삭제
