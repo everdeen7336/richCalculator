@@ -184,7 +184,7 @@ export default function GlobeHero({ departureFlight, returnFlight, transitFlight
                 어디로 떠나시나요?
               </p>
               <p className="text-[11px] sm:text-[12px] text-[var(--text-secondary)] mt-0.5">
-                항공편을 등록하면 여행이 시작됩니다
+                아래에서 여행을 시작해보세요 ↓
               </p>
             </>
           ) : (
