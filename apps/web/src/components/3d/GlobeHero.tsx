@@ -33,9 +33,28 @@ const AIRPORT_WEATHER_CITY: Record<string, string> = {
   DXB: '두바이', DOH: '도하',
 };
 
+/** 로딩 스켈레톤 */
+function GlobeSkeleton() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      {/* 지구본 형태의 원형 스켈레톤 */}
+      <div className="relative w-[180px] h-[180px] sm:w-[240px] sm:h-[240px]">
+        {/* 배경 원 */}
+        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#E8E4DC] to-[#D4CFC4] animate-pulse" />
+        {/* 대륙 느낌의 장식 */}
+        <div className="absolute inset-4 rounded-full border-2 border-dashed border-[#C4BFB4]/50 animate-spin" style={{ animationDuration: '20s' }} />
+        {/* 중앙 아이콘 */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-3xl sm:text-4xl opacity-60">🌍</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const GlobeScene = dynamic(() => import('./GlobeScene'), {
   ssr: false,
-  loading: () => null,
+  loading: () => <GlobeSkeleton />,
 });
 
 interface GlobeHeroProps {
@@ -212,7 +231,7 @@ export default function GlobeHero({ departureFlight, returnFlight, transitFlight
         </div>
       </div>
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<GlobeSkeleton />}>
         <GlobeScene departureFlight={departureFlight} returnFlight={returnFlight} transitFlights={transitFlights} />
       </Suspense>
     </div>
